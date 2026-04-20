@@ -89,6 +89,7 @@
         .badge-deadline { background-color: #e74c3c; }
         .badge-progress { background-color: #27ae60; } /* 일별 달성률 배지 (초록) */
 
+        .badge-time .hover-popup { background-color: #2980b9; }
         .badge-memo .hover-popup { background-color: #8e44ad; }
         .badge-goal .hover-popup { background-color: #d68910; }
         .badge-deadline .hover-popup { background-color: #c0392b; }
@@ -711,7 +712,7 @@
                     totalMins += dayMins;
                     
                     // 🔥 1. 공부시간 배지
-                    if(dayMins > 0) b += `<div class="cal-badge badge-time"><span class="cal-badge-content">⏱️ ${Math.floor(dayMins/60)}h ${dayMins%60}m</span></div>`;
+                    if(dayMins > 0) b += `<div class="cal-badge badge-time"><span class="cal-badge-content">⏱️ ${Math.floor(dayMins/60)}h ${dayMins%60}m</span><div class="hover-popup">⏱️ 일일 공부시간: ${Math.floor(dayMins/60)}시간 ${dayMins%60}분</div></div>`;
                     
                     // 🔥 2. 일일 달성률 배지 연동 추가 🔥
                     let completed = dayPlan.filter(r => r.done).length;
