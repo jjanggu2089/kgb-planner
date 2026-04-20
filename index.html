@@ -186,7 +186,7 @@
     import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 💡 [필수] 본인의 파이어베이스 설정값으로 채워주세요!
+    // 💡 [필수] 본인의 파이어베이스 설정값
     const firebaseConfig = {
         apiKey: "AIzaSyC4J47Xe8eqv9Gf2MNReewVia77G3dyMsc",
         authDomain: "kgb-planner.firebaseapp.com",
@@ -302,6 +302,7 @@
     window.goToToday = () => { dailyDateInput.value = getLocalYMD(new Date()); window.renderDaily(); };
     window.goToDate = (dateStr) => { dailyDateInput.value = dateStr; window.switchTab('daily'); window.renderDaily(); };
 
+    // 🔥 일별 표 그리기 (입력 중 끊김 완전 방지) 🔥
     window.renderDaily = () => {
         const currentData = getCurrentDailyData();
         const tbody = document.getElementById('plannerBody');
@@ -316,71 +317,92 @@
             const tr = document.createElement('tr');
             if(row.done) tr.className = 'completed-row';
             
-            // 🔥 '계획 시간'과 '실제 시간' 모두 동일한 handleTimeBlur 로직 공유 🔥
-            // 🔥 placeholder="09002300" 예시 삭제 완료 🔥
+            // onblur에서 handleTimeBlur만 실행하고, HTML을 다시 그리지 않습니다(직접 값만 조작).
             tr.innerHTML = `
                 <td>
                     <input type="text" style="text-align:center;" value="${row.timePlan || ''}" 
                            onfocus="window.isTyping=true" 
-                           oninput="updateDailyRow(${index}, 'timePlan', this.value, false)" 
-                           onblur="handleTimeBlur(${index}, 'timePlan', this.value)">
+                           oninput="updateDailyData(${index}, 'timePlan', this.value)" 
+                           onblur="handleTimeBlur(${index}, 'timePlan', this)">
                 </td>
-                <td><input type="text" value="${row.contentPlan || ''}" onfocus="window.isTyping=true" oninput="updateDailyRow(${index}, 'contentPlan', this.value, false)" onblur="window.isTyping=false"></td>
+                <td>
+                    <input type="text" value="${row.contentPlan || ''}" 
+                           onfocus="window.isTyping=true" 
+                           oninput="updateDailyData(${index}, 'contentPlan', this.value)" 
+                           onblur="window.isTyping=false">
+                </td>
                 <td>
                     <input type="text" style="text-align:center;" value="${row.timeActual || ''}" 
                            onfocus="window.isTyping=true" 
-                           oninput="updateDailyRow(${index}, 'timeActual', this.value, false)" 
-                           onblur="handleTimeBlur(${index}, 'timeActual', this.value)">
+                           oninput="updateDailyData(${index}, 'timeActual', this.value)" 
+                           onblur="handleTimeBlur(${index}, 'timeActual', this)">
                 </td>
-                <td><input type="text" value="${row.contentActual || ''}" onfocus="window.isTyping=true" oninput="updateDailyRow(${index}, 'contentActual', this.value, false)" onblur="window.isTyping=false"></td>
-                <td><input type="checkbox" ${row.done ? 'checked' : ''} onchange="updateDailyRow(${index}, 'done', this.checked, true)"></td>
+                <td>
+                    <input type="text" value="${row.contentActual || ''}" 
+                           onfocus="window.isTyping=true" 
+                           oninput="updateDailyData(${index}, 'contentActual', this.value)" 
+                           onblur="window.isTyping=false">
+                </td>
+                <td><input type="checkbox" ${row.done ? 'checked' : ''} onchange="updateDailyCheck(${index}, this.checked, this)"></td>
                 <td><button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button></td>
             `;
             tbody.appendChild(tr);
         });
 
-        const total = currentData.plan.length;
-        const pct = total === 0 ? 0 : Math.round((completedCount / total) * 100);
-        document.getElementById('progressBar').style.width = pct + '%';
-        document.getElementById('progressBar').innerText = pct + '% 달성';
+        updateDailyProgressBar();
         
         document.getElementById('dailyMemoInput').value = currentData.memo || "";
         document.getElementById('goalDate').value = appData.goalDate || "";
+        updateDailyTotalTimeBadge();
+    };
 
-        let totalMins = window.calcTotalMinutes(currentData.plan);
+    window.updateDailyProgressBar = () => {
+        const currentData = getCurrentDailyData();
+        const total = currentData.plan.length;
+        const completedCount = currentData.plan.filter(row => row.done).length;
+        const pct = total === 0 ? 0 : Math.round((completedCount / total) * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressBar').innerText = pct + '% 달성';
+    };
+
+    window.updateDailyTotalTimeBadge = () => {
+        let totalMins = window.calcTotalMinutes(getCurrentDailyData().plan);
         let hours = Math.floor(totalMins / 60);
         let mins = totalMins % 60;
         document.getElementById('dailyTotalTime').innerText = `⏱️ 하루 공부시간: ${hours}시간 ${mins}분`;
     };
 
-    // 🔥 8자리 숫자 포맷팅 통합 함수 (계획시간, 실제시간 공용) 🔥
-    window.handleTimeBlur = (index, key, val) => {
+    // 🔥 텍스트/시간 입력 시 화면을 새로 고치지 않고 데이터만 변경 🔥
+    window.updateDailyData = (index, key, value) => {
+        getCurrentDailyData().plan[index][key] = value;
+        if (key === 'timeActual') updateDailyTotalTimeBadge();
+        saveToServer();
+    };
+
+    // 🔥 체크박스를 누를 때도 화면을 통째로 안 그리고 디자인만 슬쩍 변경 🔥
+    window.updateDailyCheck = (index, checked, element) => {
+        getCurrentDailyData().plan[index].done = checked;
+        let tr = element.closest('tr');
+        if(checked) tr.classList.add('completed-row');
+        else tr.classList.remove('completed-row');
+        updateDailyProgressBar();
+        saveToServer();
+    };
+
+    // 🔥 시간 포맷팅도 화면을 안 지우고 해당 칸의 글자만 싹 바꿔치기 🔥
+    window.handleTimeBlur = (index, key, element) => {
         window.isTyping = false;
+        let val = element.value;
         let clean = val.replace(/[^0-9]/g, ''); 
         if(clean.length === 8) {
             let formatted = `${clean.slice(0,2)}:${clean.slice(2,4)}~${clean.slice(4,6)}:${clean.slice(6,8)}`;
             getCurrentDailyData().plan[index][key] = formatted;
+            element.value = formatted; // 칸의 글자만 직접 바꿈 (포커스 유지!)
         } else {
-            getCurrentDailyData().plan[index][key] = val; // 8자리가 아니면 친 그대로 둡니다.
+            getCurrentDailyData().plan[index][key] = val; 
         }
-        window.renderDaily(); 
+        updateDailyTotalTimeBadge();
         saveToServer();
-    };
-
-    window.updateDailyRow = (index, key, value, shouldRender) => { 
-        const currentData = getCurrentDailyData();
-        currentData.plan[index][key] = value; 
-        
-        if(shouldRender) {
-            window.renderDaily(); 
-        } else {
-            // 시간 합산 실시간 반영
-            let totalMins = window.calcTotalMinutes(currentData.plan);
-            let hours = Math.floor(totalMins / 60);
-            let mins = totalMins % 60;
-            document.getElementById('dailyTotalTime').innerText = `⏱️ 하루 공부시간: ${hours}시간 ${mins}분`;
-        }
-        saveToServer(); 
     };
 
     window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan: '', contentPlan: '', timeActual: '', contentActual: '', done: false }); window.renderDaily(); saveToServer(); };
@@ -426,23 +448,26 @@
         return `(${DAY_NAMES[d.getDay()]})`;
     }
 
+    // 🔥 월별 표 그리기 (포커스 유지의 핵심) 🔥
     window.renderMonthly = () => {
         const data = getCurrentMonthData();
         const goalDiv = document.getElementById('goalContainer');
         goalDiv.innerHTML = '';
         
-        // 🔥 입력 중(oninput, onchange)에는 렌더링하지 않고 캘린더만 업데이트, 포커스가 빠질 때(onblur)만 목록 렌더링 🔥
         data.goals.forEach((g, i) => {
             goalDiv.innerHTML += `
                 <div class="list-item">
-                    <input type="checkbox" ${g.done ? 'checked' : ''} onchange="updateM(${i},'goals','done',this.checked, true)">
+                    <input type="checkbox" ${g.done ? 'checked' : ''} onchange="updateMCheck(${i},'goals',this.checked)">
                     <input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${g.targetDate}" 
                            onfocus="window.isTyping=true" 
-                           oninput="updateM(${i},'goals','targetDate',this.value, false)" 
-                           onchange="updateM(${i},'goals','targetDate',this.value, false)" 
-                           onblur="window.isTyping=false; window.renderMonthly();">
-                    <span class="day-label">${getDayLabel(g.targetDate)}</span>
-                    <input type="text" value="${g.text}" onfocus="window.isTyping=true" oninput="updateM(${i},'goals','text',this.value, false)" onblur="window.isTyping=false; window.renderMonthly();" style="${g.done ? 'text-decoration:line-through; color:#ccc;' : ''}">
+                           onchange="updateMDate(${i},'goals',this.value)" 
+                           onblur="window.isTyping=false">
+                    <span id="m_g_l_${i}" class="day-label">${getDayLabel(g.targetDate)}</span>
+                    <input type="text" id="m_g_t_${i}" value="${g.text}" 
+                           onfocus="window.isTyping=true" 
+                           oninput="updateMText(${i},'goals',this.value)" 
+                           onblur="window.isTyping=false" 
+                           style="${g.done ? 'text-decoration:line-through; color:#ccc;' : ''}">
                     <button class="delete-btn" onclick="deleteM(${i},'goals')">삭제</button>
                 </div>`;
         });
@@ -455,11 +480,13 @@
                 <div class="list-item">
                     <input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${d.date}" 
                            onfocus="window.isTyping=true" 
-                           oninput="updateM(${i},'deadlines','date',this.value, false)" 
-                           onchange="updateM(${i},'deadlines','date',this.value, false)" 
-                           onblur="window.isTyping=false; window.renderMonthly();">
-                    <span class="day-label">${getDayLabel(d.date)}</span>
-                    <input type="text" value="${d.text}" onfocus="window.isTyping=true" oninput="updateM(${i},'deadlines','text',this.value, false)" onblur="window.isTyping=false; window.renderMonthly();">
+                           onchange="updateMDate(${i},'deadlines',this.value)" 
+                           onblur="window.isTyping=false">
+                    <span id="m_d_l_${i}" class="day-label">${getDayLabel(d.date)}</span>
+                    <input type="text" value="${d.text}" 
+                           onfocus="window.isTyping=true" 
+                           oninput="updateMText(${i},'deadlines',this.value)" 
+                           onblur="window.isTyping=false">
                     <button class="delete-btn" onclick="deleteM(${i},'deadlines')">삭제</button>
                 </div>`;
         });
@@ -467,14 +494,37 @@
         renderCalendar(data);
     };
 
-    window.updateM = (index, type, key, val, shouldRenderList) => { 
-        getCurrentMonthData()[type][index][key] = val; 
-        if(shouldRenderList) {
-            window.renderMonthly(); 
-        } else {
-            renderCalendar(getCurrentMonthData()); // 입력 중에도 달력 뱃지는 즉시 반영되도록!
+    // 🔥 월별: 날짜를 바꾸면 화면을 새로 고치지 않고 '(요일)' 글자와 '달력 뱃지'만 업데이트 🔥
+    window.updateMDate = (index, type, val) => {
+        let key = (type === 'goals') ? 'targetDate' : 'date';
+        getCurrentMonthData()[type][index][key] = val;
+        
+        // (요일) 라벨 텍스트 교체
+        let labelId = (type === 'goals') ? `m_g_l_${index}` : `m_d_l_${index}`;
+        let labelEl = document.getElementById(labelId);
+        if(labelEl) labelEl.innerText = getDayLabel(val);
+        
+        renderCalendar(getCurrentMonthData()); // 달력만 새로 그림
+        saveToServer();
+    };
+
+    // 🔥 월별: 내용을 텍스트로 치는 동안 달력 뱃지만 업데이트 🔥
+    window.updateMText = (index, type, val) => {
+        getCurrentMonthData()[type][index].text = val;
+        renderCalendar(getCurrentMonthData()); // 달력만 새로 그림
+        saveToServer();
+    };
+
+    // 🔥 월별: 체크박스를 누르면 줄긋기 디자인과 달력 뱃지만 업데이트 🔥
+    window.updateMCheck = (index, type, checked) => {
+        getCurrentMonthData()[type][index].done = checked;
+        let txtInput = document.getElementById(`m_g_t_${index}`);
+        if(txtInput) {
+            txtInput.style.textDecoration = checked ? 'line-through' : '';
+            txtInput.style.color = checked ? '#ccc' : '';
         }
-        saveToServer(); 
+        renderCalendar(getCurrentMonthData());
+        saveToServer();
     };
 
     window.addGoal = () => { getCurrentMonthData().goals.push({text:'', targetDate:'', done:false}); window.renderMonthly(); saveToServer(); };
@@ -494,11 +544,8 @@
         
         for(let day=1; day<=daysInMonth; day++) {
             const dStr = `${year}-${month}-${String(day).padStart(2, '0')}`;
-            
-            // 🔥 && g.text 조건 삭제! 이제 날짜만 입력해도 달력에 뜹니다 🔥
             const dayGoals = data.goals.filter(g => g.targetDate === dStr);
             const dayDeads = data.deadlines.filter(d => d.date === dStr);
-            
             let badges = '';
             
             if (appData.dailyStore && appData.dailyStore[dStr]) {
@@ -518,8 +565,6 @@
                     badges += `<div class="cal-badge badge-memo">📝 ${shortMemo}</div>`;
                 }
             }
-            
-            // 내용이 비어있으면 '(내용 없음)' 이라고 뱃지에 표시
             dayDeads.forEach(d => {
                 let txt = d.text ? d.text : '(내용 없음)';
                 badges += `<div class="cal-badge badge-deadline">🚨 ${txt}</div>`;
@@ -528,7 +573,6 @@
                 let txt = g.text ? g.text : '(내용 없음)';
                 badges += `<div class="cal-badge badge-goal" style="${g.done?'opacity:0.5; text-decoration:line-through;':''}">🎯 ${g.done?'✓ ':''}${txt}</div>`;
             });
-            
             grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${dStr}')" title="클릭해서 작성하기"><span class="cal-day-num">${day}</span>${badges}</div>`;
         }
         let mHours = Math.floor(monthlyTotalMins / 60);
