@@ -51,7 +51,7 @@
         .completed-row input[type="text"] { color: #94a3b8; text-decoration: line-through; }
         .clear-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2em; color: #bdc3c7; padding: 0 5px; }
         
-        /* 🔥 일별/월별 회고(메모) 팝업 CSS 🔥 */
+        /* 🔥 회고(메모) 입력칸 CSS 🔥 */
         .daily-memo-container { position: relative; margin-top: 20px; }
         .memo-area { 
             width: 100%; height: 46px; padding: 12px 15px; border: 1px solid #ccc; border-radius: 6px; 
@@ -62,15 +62,6 @@
         .memo-area:focus { 
             height: 120px; white-space: pre-wrap; overflow-y: auto; resize: vertical; outline: 2px solid #3498db; outline-offset: -1px;
         }
-        .hover-popup-memo {
-            display: none; position: absolute; bottom: calc(100% + 5px); left: 0; z-index: 100;
-            width: max-content; min-width: 300px; max-width: 100%;
-            background: #9b59b6; color: white; padding: 12px 15px; border-radius: 8px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); white-space: pre-wrap; word-break: break-word; 
-            line-height: 1.4; font-weight: bold; pointer-events: none;
-        }
-        .daily-memo-container:hover .hover-popup-memo.has-content { display: block; animation: popIn 0.15s ease-out forwards; }
-        .memo-area:focus ~ .hover-popup-memo { display: none !important; }
 
         .drag-handle { font-size: 1.2em; color: #95a5a6; transition: all 0.2s ease; border-radius: 4px; user-select: none; }
         .drag-handle:hover { background-color: #e8f4fd; color: #2c3e50; transform: scale(1.1); outline: 1px solid #3498db; }
@@ -279,7 +270,8 @@
             <table>
                 <thead><tr>
                     <th style="width: 4%;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)"></th>
-                    <th style="width: 4%;"></th><th style="width: 14%;">계획 시간</th><th style="width: 10%;">분류</th>
+                    <th style="width: 4%;"></th>
+                    <th style="width: 14%;">계획 시간</th><th style="width: 10%;">분류</th>
                     <th style="width: 24%;">계획 내용</th><th style="width: 15%;">실제 시간</th><th style="width: 24%;">실제 내용</th><th style="width: 5%;">완료</th>
                 </tr></thead>
                 <tbody id="plannerBody"></tbody>
@@ -288,7 +280,6 @@
         
         <div class="daily-memo-container">
             <textarea id="dailyMemoInput" class="memo-area" placeholder="오늘의 회고 (여기에 적은 내용은 월별 캘린더에 연동됩니다!)" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyMemo(this.value)"></textarea>
-            <div id="dailyMemoPopup" class="hover-popup-memo"></div>
         </div>
     </div>
 
@@ -395,7 +386,6 @@
         if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addDailyRow(); }
         if (e.altKey && e.key.toLowerCase() === 'c') { e.preventDefault(); bulkCopyRows(); }
         
-        // 🔥 선택 삭제 단축키(Alt+D) & 전체선택 자동해제 적용 🔥
         if (e.altKey && e.key.toLowerCase() === 'd') { 
             e.preventDefault(); 
             if(document.getElementById('tabDaily').classList.contains('active')) {
@@ -415,7 +405,6 @@
                     gIndices.sort((a,b)=>b-a).forEach(idx => appData.allGoals.splice(idx,1));
                     dIndices.sort((a,b)=>b-a).forEach(idx => appData.allDeadlines.splice(idx,1));
                     
-                    // 전체선택 체크 해제
                     if(gIndices.length) document.getElementById('selectAllGoals').checked = false;
                     if(dIndices.length) document.getElementById('selectAllDeadlines').checked = false;
 
@@ -458,9 +447,16 @@
     
     function updateUI() { 
         if(!document.getElementById('monthSelector').value) document.getElementById('monthSelector').value = getLocalYMD(new Date()).slice(0,7);
-        window.switchTab('monthly'); 
         window.renderDdays(); 
         window.updateTemplateDropdown(); 
+        
+        // 🔥 현재 활성화된 탭을 확인하여 해당 탭만 새로고침 (월별 탭 강제 이동 방지)
+        const activeTabEl = document.querySelector('.tab.active');
+        const currentTab = activeTabEl ? activeTabEl.id.replace('tab', '').toLowerCase() : 'monthly';
+        
+        if (currentTab === 'daily') window.renderDaily();
+        else if (currentTab === 'monthly') window.renderMonthly();
+        else window.renderStats();
     }
 
     window.calcTotalMinutes = (arr) => {
@@ -509,14 +505,10 @@
         });
         updateDailyProgressBar(); 
         
-        // 회고 데이터 렌더링
+        // 회고 텍스트 에어리어 렌더링
         const memoVal = cur.memo || "";
         const memoInput = document.getElementById('dailyMemoInput');
-        if(!window.isTyping) memoInput.value = memoVal; // 타이핑 중이 아닐때만 값 적용
-        const popup = document.getElementById('dailyMemoPopup');
-        popup.innerText = memoVal;
-        if(memoVal.trim() !== '') popup.classList.add('has-content');
-        else popup.classList.remove('has-content');
+        if(!window.isTyping) memoInput.value = memoVal; 
         
         updateDailyTotalTimeBadge();
     };
@@ -526,7 +518,7 @@
         if(!indices.length) return showToast("선택된 일정이 없습니다.");
         if(confirm(`선택된 ${indices.length}개의 일정을 삭제하시겠습니까?`)){ 
             indices.sort((a,b)=>b-a).forEach(idx=>getCurrentDailyData().plan.splice(idx,1)); 
-            document.getElementById('selectAllCheckbox').checked = false; // 선택 해제
+            document.getElementById('selectAllCheckbox').checked = false;
             window.renderDaily(); saveToServer(); showToast("선택 삭제 완료"); 
         }
     };
@@ -538,7 +530,7 @@
         if(target && target.match(/^\d{4}-\d{2}-\d{2}$/)){
             if(!appData.dailyStore[target]) appData.dailyStore[target] = { plan:[], memo: "" };
             indices.forEach(idx => { let item = JSON.parse(JSON.stringify(getCurrentDailyData().plan[idx])); item.done=false; item.timeActual=""; item.contentActual=""; appData.dailyStore[target].plan.push(item); });
-            document.getElementById('selectAllCheckbox').checked = false; // 선택 해제
+            document.getElementById('selectAllCheckbox').checked = false;
             window.renderDaily();
             saveToServer(); showToast("복사 완료!");
         }
@@ -563,13 +555,8 @@
     window.updateDailyMemo = (v) => { 
         getCurrentDailyData().memo = v; 
         saveToServer(); 
-        const popup = document.getElementById('dailyMemoPopup');
-        popup.innerText = v;
-        if(v.trim() !== '') popup.classList.add('has-content');
-        else popup.classList.remove('has-content');
     };
 
-    // 🔥 월별 메모(회고) 데이터 업데이트
     window.updateMonthlyMemo = (v) => {
         const m = document.getElementById('monthSelector').value;
         if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
@@ -617,14 +604,12 @@
         if(confirm(`선택된 ${indices.length}개의 항목을 삭제하시겠습니까?`)){
             indices.sort((a,b)=>b-a).forEach(idx => appData[type].splice(idx,1));
             
-            // 전체선택 체크 해제
             document.getElementById(type === 'allGoals' ? 'selectAllGoals' : 'selectAllDeadlines').checked = false;
             
             window.renderMonthly(); saveToServer(); showToast("삭제 완료");
         }
     };
     
-    // 🔥 드래그 시각적 효과 이벤트 추가
     window.handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
     window.handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
 
@@ -650,7 +635,6 @@
     window.renderMonthly=()=>{
         const m = document.getElementById('monthSelector').value, gv = appData.allGoals.filter(g=>!g.targetDate||g.targetDate.startsWith(m)), dv = appData.allDeadlines.filter(d=>!d.date||d.date.startsWith(m));
         
-        // 월별 회고 칸 업데이트
         if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
         const mMemo = (appData.monthlyDataStore[m] && appData.monthlyDataStore[m].memo) ? appData.monthlyDataStore[m].memo : '';
         const mInput = document.getElementById('monthlyMemoInput');
@@ -739,7 +723,6 @@
                 }
             });
             
-            // ondragover, ondragleave를 전역 함수로 호출하여 확실하게 이벤트 제어
             grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${ds}')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="dropMonthlyItem(event, '${ds}')"><span class="cal-day-num">${d}</span>${b}</div>`;
         }
         document.getElementById('monthlyTotalTime').innerText = `🗓️ 월 누적 시간: ${Math.floor(totalMins/60)}시간 ${totalMins%60}분`;
