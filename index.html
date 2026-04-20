@@ -51,12 +51,15 @@
         .date-selector-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
         .time-badge { font-size: 1.1em; font-weight: bold; color: #d35400; background: #fdebd0; padding: 8px 15px; border-radius: 8px; border: 1px solid #fad7a1;}
         
+        /* 🔥 새로 추가된 시간 입력 전용 CSS 🔥 */
+        .time-input-group { display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .time-input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.9em; width: 100px; }
+        
         .calendar-container { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
         .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); background: #34495e; color: white; text-align: center; font-weight: bold; }
         .calendar-header div { padding: 10px 0; border-right: 1px solid #465c71; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: #eee; gap: 1px; }
         
-        /* 🔥 달력 클릭 효과 추가 🔥 */
         .calendar-cell { background: #fff; min-height: 100px; padding: 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: background 0.2s; }
         .calendar-cell:hover { background: #e8f4f8; }
         .calendar-cell.empty { background: #f9f9f9; cursor: default; }
@@ -65,12 +68,13 @@
         .cal-badge { font-size: 0.75em; padding: 4px 6px; border-radius: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;}
         .badge-goal { background-color: #3498db; }
         .badge-deadline { background-color: #e67e22; }
-        .badge-time { background-color: #27ae60; text-align: center; font-weight: bold;} /* 일별 총 시간 뱃지 */
+        .badge-time { background-color: #27ae60; text-align: center; font-weight: bold;}
         
         .monthly-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .monthly-card { background: #fdfdfd; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
         .list-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .list-item input[type="text"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .day-label { font-size: 0.85em; font-weight: bold; color: #7f8c8d; width: 30px; text-align: center; }
     </style>
 </head>
 <body>
@@ -108,7 +112,8 @@
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="nav-btn" onclick="changeDailyDay(-1)">◀ 어제</button>
                 <input type="date" id="dailyDateSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="renderDaily()">
-                <button class="nav-btn" onclick="changeDailyDay(1)">내일 ▶</button>
+                <span id="dailyDayOfWeek" style="font-size: 1.2em; font-weight: bold; color: #34495e;">(요일)</span>
+                <button class="nav-btn" style="margin-left:5px;" onclick="changeDailyDay(1)">내일 ▶</button>
                 <button class="nav-btn" style="margin-left:10px;" onclick="goToToday()">오늘</button>
             </div>
             <div id="dailyTotalTime" class="time-badge">⏱️ 하루 공부시간: 0시간 0분</div>
@@ -119,7 +124,7 @@
             <thead>
                 <tr>
                     <th style="width: 15%;">계획 시간</th><th style="width: 25%;">계획 내용</th>
-                    <th style="width: 15%;">실제 시간<br><span style="font-size:0.7em; font-weight:normal;">(예: 14:00~16:30)</span></th><th style="width: 25%;">실제 내용</th><th style="width: 5%;">완료</th><th style="width: 10%;">관리</th>
+                    <th style="width: 20%;">실제 시간 (시작~종료)</th><th style="width: 25%;">실제 내용</th><th style="width: 5%;">완료</th><th style="width: 10%;">관리</th>
                 </tr>
             </thead>
             <tbody id="plannerBody"></tbody>
@@ -133,9 +138,11 @@
 
     <div id="monthlyView" class="tab-content">
         <div class="date-selector-area">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <h2 style="margin:0; color:#2c3e50;">선택한 달:</h2>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="nav-btn" onclick="changeMonthOffset(-1)">◀ 이전 달</button>
                 <input type="month" id="monthSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="changeMonth()">
+                <button class="nav-btn" onclick="changeMonthOffset(1)">다음 달 ▶</button>
+                <button class="nav-btn" style="margin-left:10px;" onclick="goToThisMonth()">이번 달</button>
             </div>
             <div id="monthlyTotalTime" class="time-badge" style="background:#e8f4f8; color:#2980b9; border-color:#baddf0;">🗓️ 월 누적 시간: 0시간 0분</div>
         </div>
@@ -191,10 +198,9 @@
     let saveTimeout;
     let unsubscribeSnapshot = null;
     
-    // 🔥 입력 중 포커스 날아감 방지 플래그 🔥
     window.isTyping = false; 
+    const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 인증 로직
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('loginOverlay').style.display = 'none';
@@ -210,7 +216,6 @@
     window.loginWithGoogle = () => { signInWithPopup(auth, provider).catch(err => alert("로그인 에러: " + err.message)); };
     window.logout = () => { if(confirm("로그아웃 하시겠습니까?")) signOut(auth); };
 
-    // 데이터 동기화
     function startSync() {
         unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -218,10 +223,7 @@
                 if(!appData.dailyStore) appData.dailyStore = {};
                 if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
                 
-                // 🔥 사용자가 키보드를 치고 있지 않을 때만 화면 업데이트 (포커스 유지) 🔥
-                if(!window.isTyping) {
-                    updateUI();
-                }
+                if(!window.isTyping) updateUI();
                 setStatus("✅ 동기화 완료", "sync-done");
             } else {
                 setDoc(docRef, { dailyStore: {}, goalDate: "", monthlyDataStore: {} });
@@ -232,7 +234,6 @@
     function saveToServer() {
         setStatus("☁️ 저장 중...", "sync-active");
         clearTimeout(saveTimeout);
-        // 타이머를 약간 늘려서 여유있게 저장되도록 수정
         saveTimeout = setTimeout(async () => {
             try { await updateDoc(docRef, appData); setStatus("✅ 저장됨", "sync-done"); } 
             catch(e) { console.error(e); setStatus("❌ 저장 실패", "sync-active"); }
@@ -259,20 +260,26 @@
 
     function updateUI() { window.renderDaily(); window.renderMonthly(); window.updateDdayDisplay(); }
 
-    // --- 시간 계산 함수 (분 단위) ---
+    // 🔥 V4 시간 계산 함수: <input type="time"> 두 개의 값을 기반으로 계산 🔥
     window.calcTotalMinutes = (planArray) => {
         let totalMin = 0;
-        const regex = /(\d{1,2}):(\d{2})\s*[~-]\s*(\d{1,2}):(\d{2})/;
-        
         planArray.forEach(row => {
-            if(row.timeActual && (row.timeActual.includes("~") || row.timeActual.includes("-"))) {
-                let match = row.timeActual.match(regex);
-                if(match) {
-                    let start = parseInt(match[1])*60 + parseInt(match[2]);
-                    let end = parseInt(match[3])*60 + parseInt(match[4]);
-                    if(end < start) end += 24*60; // 새벽 공부 처리
-                    totalMin += (end - start);
-                }
+            let start = row.timeActualStart;
+            let end = row.timeActualEnd;
+            
+            // 기존 V3 데이터("14:00~16:00" 형식) 호환성 유지
+            if (!start && !end && row.timeActual) {
+                let match = row.timeActual.match(/(\d{1,2}:\d{2})\s*[~-]\s*(\d{1,2}:\d{2})/);
+                if(match) { start = match[1]; end = match[2]; }
+            }
+
+            if(start && end) {
+                let [sh, sm] = start.split(':').map(Number);
+                let [eh, em] = end.split(':').map(Number);
+                let sMin = sh*60 + sm;
+                let eMin = eh*60 + em;
+                if(eMin < sMin) eMin += 24*60; // 새벽 처리
+                totalMin += (eMin - sMin);
             }
         });
         return totalMin;
@@ -292,13 +299,7 @@
     };
     
     window.goToToday = () => { dailyDateInput.value = getLocalYMD(new Date()); window.renderDaily(); };
-
-    // 🔥 달력에서 날짜 클릭 시 일별 뷰로 이동하는 함수 🔥
-    window.goToDate = (dateStr) => {
-        dailyDateInput.value = dateStr;
-        window.switchTab('daily');
-        window.renderDaily();
-    };
+    window.goToDate = (dateStr) => { dailyDateInput.value = dateStr; window.switchTab('daily'); window.renderDaily(); };
 
     window.renderDaily = () => {
         const currentData = getCurrentDailyData();
@@ -306,15 +307,34 @@
         tbody.innerHTML = '';
         let completedCount = 0;
         
+        // 요일 업데이트
+        let dObj = new Date(dailyDateInput.value);
+        document.getElementById('dailyDayOfWeek').innerText = `(${DAY_NAMES[dObj.getDay()]})`;
+
         currentData.plan.forEach((row, index) => {
             if(row.done) completedCount++;
+            
+            // 🔥 구버전 데이터를 신버전(timeStart, timeEnd)으로 자동 분리 🔥
+            if (!row.timeActualStart && row.timeActual) {
+                let match = row.timeActual.match(/(\d{1,2}:\d{2})\s*[~-]\s*(\d{1,2}:\d{2})/);
+                if(match) { row.timeActualStart = match[1]; row.timeActualEnd = match[2]; }
+            }
+
             const tr = document.createElement('tr');
             if(row.done) tr.className = 'completed-row';
-            // 🔥 onfocus, onblur 이벤트 추가: 입력 중 UI 강제 재생성 방지 🔥
+            
             tr.innerHTML = `
                 <td><input type="text" value="${row.timePlan || ''}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyRow(${index}, 'timePlan', this.value)"></td>
                 <td><input type="text" value="${row.contentPlan || ''}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyRow(${index}, 'contentPlan', this.value)"></td>
-                <td><input type="text" placeholder="14:00~16:00" value="${row.timeActual || ''}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyRow(${index}, 'timeActual', this.value)"></td>
+                
+                <td>
+                    <div class="time-input-group">
+                        <input type="time" class="time-input" value="${row.timeActualStart || ''}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyRow(${index}, 'timeActualStart', this.value)">
+                        <span style="color:#7f8c8d; font-weight:bold;">~</span>
+                        <input type="time" class="time-input" value="${row.timeActualEnd || ''}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyRow(${index}, 'timeActualEnd', this.value)">
+                    </div>
+                </td>
+
                 <td><input type="text" value="${row.contentActual || ''}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateDailyRow(${index}, 'contentActual', this.value)"></td>
                 <td><input type="checkbox" ${row.done ? 'checked' : ''} onchange="updateDailyRow(${index}, 'done', this.checked)"></td>
                 <td><button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button></td>
@@ -330,7 +350,6 @@
         document.getElementById('dailyMemoInput').value = currentData.memo || "";
         document.getElementById('goalDate').value = appData.goalDate || "";
 
-        // 일별 총 시간 표시
         let totalMins = window.calcTotalMinutes(currentData.plan);
         let hours = Math.floor(totalMins / 60);
         let mins = totalMins % 60;
@@ -341,10 +360,9 @@
         const currentData = getCurrentDailyData();
         currentData.plan[index][key] = value; 
         
-        // 체크박스를 누를 때만 줄을 다시 그리고, 글자 입력 시에는 시간만 업데이트 (포커스 유지용)
         if(key === 'done') {
             window.renderDaily(); 
-        } else if (key === 'timeActual') {
+        } else if (key === 'timeActualStart' || key === 'timeActualEnd') {
             let totalMins = window.calcTotalMinutes(currentData.plan);
             let hours = Math.floor(totalMins / 60);
             let mins = totalMins % 60;
@@ -353,11 +371,10 @@
         saveToServer(); 
     };
 
-    window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan: '', contentPlan: '', timeActual: '', contentActual: '', done: false }); window.renderDaily(); saveToServer(); };
-    window.deleteDailyRow = (index) => { if(confirm("삭제할까요?")) { getCurrentDailyData().plan.splice(index, 1); window.renderDaily(); saveToServer(); } };
+    window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan: '', contentPlan: '', timeActualStart: '', timeActualEnd: '', contentActual: '', done: false }); window.renderDaily(); saveToServer(); };
+    window.deleteDailyRow = (index) => { if(confirm("이 일정을 삭제할까요?")) { getCurrentDailyData().plan.splice(index, 1); window.renderDaily(); saveToServer(); } };
     window.updateDailyMemo = (val) => { getCurrentDailyData().memo = val; saveToServer(); };
 
-    // --- D-Day 및 월별 뷰 기능 ---
     window.updateDday = () => { appData.goalDate = document.getElementById('goalDate').value; saveToServer(); window.updateDdayDisplay(); };
     window.updateDdayDisplay = () => {
         const ddayDisplay = document.getElementById('ddayDisplay');
@@ -370,6 +387,20 @@
         else ddayDisplay.innerText = `D+${Math.abs(diff)}`;
     };
 
+    // --- 월별 달력 화살표 이동 기능 ---
+    window.changeMonthOffset = (offset) => {
+        let [y, m] = monthSelector.value.split('-');
+        let d = new Date(y, parseInt(m)-1 + offset, 1);
+        monthSelector.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        window.renderMonthly();
+    };
+
+    window.goToThisMonth = () => {
+        let today = new Date();
+        monthSelector.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        window.renderMonthly();
+    };
+
     function getCurrentMonthData() {
         const m = monthSelector.value;
         if (!appData.monthlyDataStore[m]) appData.monthlyDataStore[m] = { goals: [], deadlines: [], memo: "" };
@@ -377,30 +408,65 @@
     }
     
     window.changeMonth = () => { window.renderMonthly(); };
+    
+    // 월별 목표/일정 요일 포맷 함수
+    function getDayLabel(dateStr) {
+        if(!dateStr) return "";
+        let d = new Date(dateStr);
+        return `(${DAY_NAMES[d.getDay()]})`;
+    }
+
     window.renderMonthly = () => {
         const data = getCurrentMonthData();
         const goalDiv = document.getElementById('goalContainer');
         goalDiv.innerHTML = '';
         data.goals.forEach((g, i) => {
-            goalDiv.innerHTML += `<div class="list-item"><input type="checkbox" ${g.done ? 'checked' : ''} onchange="updateM(${i},'goals','done',this.checked)"><input type="text" value="${g.text}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateM(${i},'goals','text',this.value)" style="${g.done ? 'text-decoration:line-through; color:#ccc;' : ''}"><input type="date" class="input-box" style="width:130px;" value="${g.targetDate}" onchange="updateM(${i},'goals','targetDate',this.value)"><button class="delete-btn" onclick="deleteM(${i},'goals')">삭제</button></div>`;
+            goalDiv.innerHTML += `
+                <div class="list-item">
+                    <input type="checkbox" ${g.done ? 'checked' : ''} onchange="updateM(${i},'goals','done',this.checked)">
+                    <input type="text" value="${g.text}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateM(${i},'goals','text',this.value)" style="${g.done ? 'text-decoration:line-through; color:#ccc;' : ''}">
+                    <input type="date" class="input-box" style="width:130px;" value="${g.targetDate}" onchange="updateM(${i},'goals','targetDate',this.value)">
+                    <span class="day-label">${getDayLabel(g.targetDate)}</span>
+                    <button class="delete-btn" onclick="deleteM(${i},'goals')">삭제</button>
+                </div>`;
         });
         const deadlineDiv = document.getElementById('deadlineContainer');
         deadlineDiv.innerHTML = '';
         data.deadlines.forEach((d, i) => {
-            deadlineDiv.innerHTML += `<div class="list-item"><input type="date" class="input-box" style="width:130px;" value="${d.date}" onchange="updateM(${i},'deadlines','date',this.value)"><input type="text" value="${d.text}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateM(${i},'deadlines','text',this.value)"><button class="delete-btn" onclick="deleteM(${i},'deadlines')">삭제</button></div>`;
+            deadlineDiv.innerHTML += `
+                <div class="list-item">
+                    <input type="date" class="input-box" style="width:130px;" value="${d.date}" onchange="updateM(${i},'deadlines','date',this.value)">
+                    <span class="day-label">${getDayLabel(d.date)}</span>
+                    <input type="text" value="${d.text}" onfocus="window.isTyping=true" onblur="window.isTyping=false" oninput="updateM(${i},'deadlines','text',this.value)">
+                    <button class="delete-btn" onclick="deleteM(${i},'deadlines')">삭제</button>
+                </div>`;
         });
         document.getElementById('monthlyMemoInput').value = data.memo || "";
         renderCalendar(data);
     };
 
+    // 🔥 텍스트 입력 중 포커스가 날아가지 않도록 renderMonthly() 호출 조건 분리 🔥
     window.updateM = (index, type, key, val) => { 
         getCurrentMonthData()[type][index][key] = val; 
-        if(key === 'done' || type === 'deadlines' || key === 'targetDate') window.renderMonthly(); 
+        
+        // 날짜를 바꾸거나 체크박스를 눌렀을 때만 화면 재렌더링
+        if(key === 'done' || key === 'targetDate' || key === 'date') {
+            window.renderMonthly(); 
+        }
         saveToServer(); 
     };
+
     window.addGoal = () => { getCurrentMonthData().goals.push({text:'', targetDate:'', done:false}); window.renderMonthly(); saveToServer(); };
     window.addDeadline = () => { getCurrentMonthData().deadlines.push({date:'', text:''}); window.renderMonthly(); saveToServer(); };
-    window.deleteM = (index, type) => { getCurrentMonthData()[type].splice(index, 1); window.renderMonthly(); saveToServer(); };
+    
+    // 🔥 월별 목표/일정 삭제 시 팝업창 추가 🔥
+    window.deleteM = (index, type) => { 
+        if(confirm("이 항목을 정말 삭제하시겠습니까?")) {
+            getCurrentMonthData()[type].splice(index, 1); 
+            window.renderMonthly(); 
+            saveToServer(); 
+        }
+    };
     window.updateMonthlyMemo = (val) => { getCurrentMonthData().memo = val; saveToServer(); };
 
     function renderCalendar(data) {
@@ -410,7 +476,7 @@
         const firstDay = new Date(year, month - 1, 1).getDay();
         const daysInMonth = new Date(year, month, 0).getDate();
         
-        let monthlyTotalMins = 0; // 🔥 이번 달 총 공부시간 합산용 변수
+        let monthlyTotalMins = 0; 
 
         for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="calendar-cell empty"></div>`;
         
@@ -420,7 +486,6 @@
             const dayDeads = data.deadlines.filter(d => d.date === dStr && d.text);
             let badges = '';
             
-            // 🔥 해당 날짜의 일별 공부 시간 계산 및 뱃지 표시
             if (appData.dailyStore && appData.dailyStore[dStr] && appData.dailyStore[dStr].plan) {
                 let dayTotalMins = window.calcTotalMinutes(appData.dailyStore[dStr].plan);
                 if (dayTotalMins > 0) {
@@ -435,11 +500,9 @@
             dayDeads.forEach(d => badges += `<div class="cal-badge badge-deadline">🚨 ${d.text}</div>`);
             dayGoals.forEach(g => badges += `<div class="cal-badge badge-goal" style="${g.done?'opacity:0.5; text-decoration:line-through;':''}">🎯 ${g.done?'✓ ':''}${g.text}</div>`);
             
-            // 🔥 클릭 시 goToDate 함수 호출
-            grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${dStr}')" title="클릭해서 이 날짜 작성하기"><span class="cal-day-num">${day}</span>${badges}</div>`;
+            grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${dStr}')" title="클릭해서 작성하기"><span class="cal-day-num">${day}</span>${badges}</div>`;
         }
 
-        // 🔥 월간 누적 시간 UI 업데이트
         let mHours = Math.floor(monthlyTotalMins / 60);
         let mMins = monthlyTotalMins % 60;
         document.getElementById('monthlyTotalTime').innerText = `🗓️ 월 누적 시간: ${mHours}시간 ${mMins}분`;
@@ -454,7 +517,7 @@
         } else {
             document.getElementById('tabMonthly').classList.add('active');
             document.getElementById('monthlyView').classList.add('active');
-            window.renderMonthly(); // 탭 변경 시 월간 시간 재계산
+            window.renderMonthly(); 
         }
     };
 </script>
