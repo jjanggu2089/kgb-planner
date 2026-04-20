@@ -189,19 +189,25 @@
     // --- 인증(로그인) 관리 로직 ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // 이 알림창이 뜨면 무엇이 다른지 바로 알 수 있습니다!
-            alert("로그인된 메일: [" + user.email + "]\n내 코드의 메일: [" + MY_SECRET_EMAIL + "]");
+            // [진단 1] 현재 로그인된 이메일을 대문자로 바꿔서 비교 (대소문자 무시)
+            const loggedInEmail = user.email.trim().toLowerCase();
+            const secretEmail = MY_SECRET_EMAIL.trim().toLowerCase();
     
-            if (user.email.trim() === MY_SECRET_EMAIL.trim()) { // .trim()으로 공백 제거
+            console.log("실제 로그인된 메일:", loggedInEmail);
+            console.log("코드에 설정된 메일:", secretEmail);
+    
+            if (loggedInEmail === secretEmail) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
                 startSync();
             } else {
-                alert("이메일이 일치하지 않아 로그아웃합니다.");
+                // [진단 2] 만약 다르다면, 무엇이 다른지 경고창으로 확실히 보여줌
+                alert("이메일 불일치!\n로그인된 것: [" + loggedInEmail + "]\n설정된 것: [" + secretEmail + "]");
                 signOut(auth);
             }
         } else {
-            // ... (생략)
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
         }
     });
 
