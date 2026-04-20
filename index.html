@@ -189,21 +189,19 @@
     // --- 인증(로그인) 관리 로직 ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            if (user.email !== MY_SECRET_EMAIL) {
-                alert("접근 권한이 없습니다.");
+            // 이 알림창이 뜨면 무엇이 다른지 바로 알 수 있습니다!
+            alert("로그인된 메일: [" + user.email + "]\n내 코드의 메일: [" + MY_SECRET_EMAIL + "]");
+    
+            if (user.email.trim() === MY_SECRET_EMAIL.trim()) { // .trim()으로 공백 제거
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                startSync();
+            } else {
+                alert("이메일이 일치하지 않아 로그아웃합니다.");
                 signOut(auth);
-                return;
             }
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'block';
-            startSync();
         } else {
-            // 결과 확인을 위해 getRedirectResult 호출 (선택 사항)
-            getRedirectResult(auth).catch(error => {
-                console.error("Redirect Error:", error);
-            });
-            document.getElementById('loginOverlay').style.display = 'flex';
-            document.getElementById('appContainer').style.display = 'none';
+            // ... (생략)
         }
     });
 
