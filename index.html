@@ -29,8 +29,11 @@
         .add-btn { background-color: #3498db; color: white; }
         .add-btn:hover { background-color: #2980b9; }
         .add-btn-small { padding: 4px 10px; font-size: 0.85em; }
-        .move-btn { background-color: #9b59b6; color: white; padding: 4px 10px; font-size: 0.85em; margin-right: 10px; }
-        .move-btn:hover { background-color: #8e44ad; }
+        
+        /* 🔥 복사 버튼 테마 색상 변경 (파란색 계열) 🔥 */
+        .copy-btn { background-color: #2980b9; color: white; padding: 4px 10px; font-size: 0.85em; margin-right: 10px; }
+        .copy-btn:hover { background-color: #1f618d; }
+        
         .delete-btn { background-color: #e74c3c; color: white; padding: 6px 12px; font-size: 0.85em; }
         .nav-btn { background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; }
         .nav-btn:hover { background-color: #bdc3c7; }
@@ -47,7 +50,6 @@
         .completed-row input[type="text"] { color: #94a3b8; text-decoration: line-through; }
         .memo-area { width: 100%; height: 120px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; line-height: 1.5; margin-top: 20px; }
         
-        /* 🔥 드래그 앤 드롭 전용 CSS 🔥 */
         .drag-handle { cursor: grab; font-size: 1.2em; color: #95a5a6; }
         .drag-handle:active { cursor: grabbing; color: #2c3e50; }
         .draggable-row { transition: opacity 0.2s; }
@@ -140,7 +142,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div class="progress-wrapper"><div class="progress-bar" id="progressBar">0%</div></div>
             <div>
-                <button class="move-btn" onclick="bulkMoveRows()">🚀 선택된 일정 이동</button>
+                <button class="copy-btn" onclick="bulkCopyRows()">📋 선택된 일정 복사</button>
                 <button class="add-btn add-btn-small" onclick="addDailyRow()">+ 새 일정 추가</button>
             </div>
         </div>
@@ -148,7 +150,9 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 5%;">선택</th>
+                    <th style="width: 5%; cursor:pointer;" title="전체 선택/해제">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)">
+                    </th>
                     <th style="width: 5%;">순서</th>
                     <th style="width: 15%;">계획 시간</th><th style="width: 25%;">계획 내용</th>
                     <th style="width: 15%;">실제 시간</th><th style="width: 20%;">실제 내용</th><th style="width: 5%;">완료</th><th style="width: 10%;">관리</th>
@@ -205,7 +209,6 @@
     import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 💡 [필수] 본인의 파이어베이스 설정값
     const firebaseConfig = {
         apiKey: "AIzaSyC4J47Xe8eqv9Gf2MNReewVia77G3dyMsc",
         authDomain: "kgb-planner.firebaseapp.com",
@@ -228,7 +231,7 @@
     let unsubscribeSnapshot = null;
     
     window.isTyping = false; 
-    let draggedRowIndex = null; // 드래그 중인 행의 인덱스 저장용
+    let draggedRowIndex = null; 
     
     const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -255,8 +258,27 @@
                 if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
                 if(!appData.allGoals) appData.allGoals = [];
                 if(!appData.allDeadlines) appData.allDeadlines = [];
+
+                let migrated = false;
+                if(appData.monthlyDataStore) {
+                    for (let m in appData.monthlyDataStore) {
+                        let mData = appData.monthlyDataStore[m];
+                        if (mData.goals && mData.goals.length > 0) {
+                            appData.allGoals.push(...mData.goals);
+                            mData.goals = []; 
+                            migrated = true;
+                        }
+                        if (mData.deadlines && mData.deadlines.length > 0) {
+                            appData.allDeadlines.push(...mData.deadlines);
+                            mData.deadlines = [];
+                            migrated = true;
+                        }
+                    }
+                }
+                
                 if(!window.isTyping) updateUI();
                 setStatus("✅ 동기화 완료", "sync-done");
+                if(migrated) saveToServer(); 
             } else {
                 setDoc(docRef, { dailyStore: {}, goalDate: "", monthlyDataStore: {}, allGoals: [], allDeadlines: [] });
             }
@@ -325,6 +347,12 @@
     window.goToToday = () => { dailyDateInput.value = getLocalYMD(new Date()); window.renderDaily(); };
     window.goToDate = (dateStr) => { dailyDateInput.value = dateStr; window.switchTab('daily'); window.renderDaily(); };
 
+    // 🔥 전체 선택 체크박스 로직 🔥
+    window.toggleSelectAll = (isChecked) => {
+        const checkboxes = document.querySelectorAll('.bulk-move-checkbox');
+        checkboxes.forEach(cb => cb.checked = isChecked);
+    };
+
     window.renderDaily = () => {
         const currentData = getCurrentDailyData();
         const tbody = document.getElementById('plannerBody');
@@ -334,12 +362,15 @@
         let dObj = new Date(dailyDateInput.value);
         document.getElementById('dailyDayOfWeek').innerText = `(${DAY_NAMES[dObj.getDay()]})`;
 
+        // 테이블을 다시 그릴 때 상단의 '전체 선택' 체크박스도 해제 상태로 초기화
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        if(selectAllCb) selectAllCb.checked = false;
+
         currentData.plan.forEach((row, index) => {
             if(row.done) completedCount++;
             const tr = document.createElement('tr');
             tr.className = `draggable-row ${row.done ? 'completed-row' : ''}`;
             
-            // 🔥 HTML5 드래그 앤 드롭 이벤트 설정 🔥
             tr.setAttribute('draggable', 'true');
             tr.ondragstart = (e) => { 
                 draggedRowIndex = index; 
@@ -354,7 +385,6 @@
                 e.preventDefault();
                 e.currentTarget.classList.remove('drag-over');
                 if (draggedRowIndex !== null && draggedRowIndex !== index) {
-                    // 데이터 순서 변경
                     const item = currentData.plan.splice(draggedRowIndex, 1)[0];
                     currentData.plan.splice(index, 0, item);
                     window.renderDaily();
@@ -391,7 +421,11 @@
                            onblur="window.isTyping=false">
                 </td>
                 <td><input type="checkbox" ${row.done ? 'checked' : ''} onchange="updateDailyCheck(${index}, this.checked, this)"></td>
-                <td><button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button></td>
+                <td>
+                    <div class="manage-cell">
+                        <button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button>
+                    </div>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -402,25 +436,24 @@
         updateDailyTotalTimeBadge();
     };
 
-    // 🔥 선택된 일정들을 다른 날짜로 일괄 이동하는 함수 🔥
-    window.bulkMoveRows = () => {
+    // 🔥 일괄 복사 (초기화 포함) 기능으로 변경 🔥
+    window.bulkCopyRows = () => {
         const checkboxes = document.querySelectorAll('.bulk-move-checkbox');
-        let indicesToMove = [];
+        let indicesToCopy = [];
         checkboxes.forEach((cb) => { 
-            if(cb.checked) indicesToMove.push(parseInt(cb.dataset.index)); 
+            if(cb.checked) indicesToCopy.push(parseInt(cb.dataset.index)); 
         });
 
-        if(indicesToMove.length === 0) { 
-            alert("이동할 일정을 왼쪽 체크박스에서 선택해주세요."); 
+        if(indicesToCopy.length === 0) { 
+            alert("복사할 일정을 왼쪽 체크박스에서 선택해주세요."); 
             return; 
         }
 
-        // 기본 추천 날짜를 '내일'로 세팅
         let d = new Date(dailyDateInput.value);
         d.setDate(d.getDate() + 1);
         let tomorrowStr = getLocalYMD(d);
 
-        let targetDate = prompt(`${indicesToMove.length}개의 일정을 이동할 날짜를 입력하세요 (예: 2026-04-22)`, tomorrowStr);
+        let targetDate = prompt(`${indicesToCopy.length}개의 일정을 복사할 날짜를 입력하세요 (예: 2026-04-22)`, tomorrowStr);
         
         if (targetDate && targetDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
             if (!appData.dailyStore[targetDate]) {
@@ -428,28 +461,27 @@
             }
             
             const currentData = getCurrentDailyData();
-            let itemsToMove = [];
+            let itemsToCopy = [];
             
-            // 인덱스가 꼬이지 않도록 뒤에서부터 빼냅니다.
-            for(let i = indicesToMove.length - 1; i >= 0; i--) {
-                let idx = indicesToMove[i];
-                let item = currentData.plan.splice(idx, 1)[0];
+            // 선택된 인덱스를 순회하며 깊은 복사 진행
+            for(let i = 0; i < indicesToCopy.length; i++) {
+                let idx = indicesToCopy[i];
+                let item = JSON.parse(JSON.stringify(currentData.plan[idx])); // 원본 데이터 훼손 없는 완벽한 복사
                 
-                // 이동된 일정은 새 마음으로 시작하도록 상태 초기화
+                // 복사본의 실행 여부와 결과는 깨끗하게 초기화
                 item.done = false; 
                 item.timeActual = ""; 
                 item.contentActual = "";
                 
-                // 원래 순서를 유지하기 위해 배열 앞에 추가
-                itemsToMove.unshift(item); 
+                itemsToCopy.push(item); 
             }
             
-            // 새 날짜의 맨 뒤에 붙여넣기
-            appData.dailyStore[targetDate].plan.push(...itemsToMove);
+            // 타겟 날짜의 맨 뒤에 복사본들을 붙여넣기 (원본은 지우지 않음!)
+            appData.dailyStore[targetDate].plan.push(...itemsToCopy);
             
             window.renderDaily();
             saveToServer();
-            alert(`선택된 일정이 ${targetDate}로 성공적으로 이동되었습니다!`);
+            alert(`선택된 일정이 ${targetDate}로 성공적으로 복사되었습니다!`);
         } else if (targetDate) {
             alert("올바른 날짜 형식이 아닙니다. (YYYY-MM-DD 형식으로 입력해주세요)");
         }
@@ -681,7 +713,9 @@
             });
             grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${dStr}')" title="클릭해서 작성하기"><span class="cal-day-num">${day}</span>${badges}</div>`;
         }
-        document.getElementById('monthlyTotalTime').innerText = `🗓️ 월 누적 시간: ${Math.floor(monthlyTotalMins / 60)}시간 ${monthlyTotalMins % 60}분`;
+        let mHours = Math.floor(monthlyTotalMins / 60);
+        let mMins = monthlyTotalMins % 60;
+        document.getElementById('monthlyTotalTime').innerText = `🗓️ 월 누적 시간: ${mHours}시간 ${mMins}분`;
     }
 
     window.switchTab = (tabId) => {
