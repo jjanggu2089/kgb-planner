@@ -75,6 +75,39 @@
         .list-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .list-item input[type="text"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         .day-label { font-size: 0.85em; font-weight: bold; color: #7f8c8d; width: 30px; text-align: center; }
+        /* 📱 모바일 화면(너비 768px 이하)을 위한 반응형 마법 코드 📱 */
+        @media (max-width: 768px) {
+            /* 1. 전체 화면 여백 줄이기 */
+            body { padding: 5px; }
+            .container { padding: 15px; }
+
+            /* 2. 상단 헤더와 D-Day를 가로에서 세로 배치로 변경 */
+            .header-section { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .dday-container { margin-right: 0; width: 100%; flex-wrap: wrap; justify-content: space-between; }
+
+            /* 3. 일별 플래너 표(Table) 가로 스크롤 허용 (가장 중요!) */
+            /* 화면이 좁아지면 표가 찌그러지지 않고, 좌우로 스와이프해서 볼 수 있게 만듭니다 */
+            table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #ddd; }
+            th, td { padding: 6px; font-size: 0.9em; min-width: 80px; }
+            .time-input { width: 85px; }
+
+            /* 4. 날짜 선택기 및 시간 표시 뱃지 세로 정렬 */
+            .date-selector-area { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .date-selector-area > div { flex-wrap: wrap; width: 100%; gap: 5px; }
+            .time-badge { width: 100%; text-align: center; box-sizing: border-box; }
+            .nav-btn { padding: 6px 10px; font-size: 0.85em; }
+
+            /* 5. 월별 달력 크기 조절 */
+            .calendar-cell { min-height: 70px; padding: 3px; }
+            .cal-badge { font-size: 0.65em; padding: 2px 4px; }
+            
+            /* 6. 월간 목표와 주요 일정(반반 나누던 것)을 위아래로 배치 */
+            .monthly-grid { grid-template-columns: 1fr; gap: 10px; }
+            .monthly-card { padding: 15px; }
+            
+            /* 7. 탭 버튼 크기 조절 */
+            .tab { padding: 10px 15px; font-size: 0.9em; flex: 1; text-align: center; }
+        }
     </style>
 </head>
 <body>
