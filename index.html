@@ -32,6 +32,12 @@
         .delete-btn { background-color: #e74c3c; color: white; padding: 6px 12px; font-size: 0.85em; }
         .nav-btn { background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; }
         .nav-btn:hover { background-color: #bdc3c7; }
+        
+        /* 🔥 순서 이동 및 복사 버튼 전용 CSS 🔥 */
+        .icon-btn { background: transparent; border: none; font-size: 1.1em; cursor: pointer; padding: 2px 4px; color: #7f8c8d; transition: 0.2s; }
+        .icon-btn:hover { color: #2c3e50; transform: scale(1.1); }
+        .manage-cell { display: flex; justify-content: center; align-items: center; gap: 5px; }
+
         .progress-wrapper { background-color: #e0e0e0; border-radius: 8px; overflow: hidden; height: 26px; }
         .progress-bar { height: 100%; background-color: #27ae60; width: 0%; text-align: center; line-height: 26px; color: white; font-weight: bold; transition: width 0.4s ease; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -57,6 +63,7 @@
         .badge-deadline { background-color: #e67e22; }
         .badge-time { background-color: #27ae60; text-align: center; font-weight: bold;}
         .badge-memo { background-color: #9b59b6; }
+        .badge-pct { background-color: #1abc9c; text-align: center; font-weight: bold; } 
         .monthly-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .monthly-card { background: #fdfdfd; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
         .list-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
@@ -131,8 +138,8 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 15%;">계획 시간</th><th style="width: 25%;">계획 내용</th>
-                    <th style="width: 20%;">실제 시간</th><th style="width: 25%;">실제 내용</th><th style="width: 5%;">완료</th><th style="width: 10%;">관리</th>
+                    <th style="width: 15%;">계획 시간</th><th style="width: 20%;">계획 내용</th>
+                    <th style="width: 15%;">실제 시간</th><th style="width: 25%;">실제 내용</th><th style="width: 5%;">완료</th><th style="width: 20%;">관리</th>
                 </tr>
             </thead>
             <tbody id="plannerBody"></tbody>
@@ -186,7 +193,7 @@
     import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 💡 [필수] 본인의 파이어베이스 설정값으로 채워주세요!
+    // 💡 [필수] 본인의 파이어베이스 설정값
     const firebaseConfig = {
         apiKey: "AIzaSyC4J47Xe8eqv9Gf2MNReewVia77G3dyMsc",
         authDomain: "kgb-planner.firebaseapp.com",
@@ -234,8 +241,27 @@
                 if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
                 if(!appData.allGoals) appData.allGoals = [];
                 if(!appData.allDeadlines) appData.allDeadlines = [];
+
+                let migrated = false;
+                if(appData.monthlyDataStore) {
+                    for (let m in appData.monthlyDataStore) {
+                        let mData = appData.monthlyDataStore[m];
+                        if (mData.goals && mData.goals.length > 0) {
+                            appData.allGoals.push(...mData.goals);
+                            mData.goals = []; 
+                            migrated = true;
+                        }
+                        if (mData.deadlines && mData.deadlines.length > 0) {
+                            appData.allDeadlines.push(...mData.deadlines);
+                            mData.deadlines = [];
+                            migrated = true;
+                        }
+                    }
+                }
+                
                 if(!window.isTyping) updateUI();
                 setStatus("✅ 동기화 완료", "sync-done");
+                if(migrated) saveToServer(); 
             } else {
                 setDoc(docRef, { dailyStore: {}, goalDate: "", monthlyDataStore: {}, allGoals: [], allDeadlines: [] });
             }
@@ -318,6 +344,7 @@
             const tr = document.createElement('tr');
             if(row.done) tr.className = 'completed-row';
             
+            // 🔥 관리 탭에 이동(위/아래) 및 복사 버튼 추가 🔥
             tr.innerHTML = `
                 <td>
                     <input type="text" style="text-align:center;" value="${row.timePlan || ''}" 
@@ -344,7 +371,14 @@
                            onblur="window.isTyping=false">
                 </td>
                 <td><input type="checkbox" ${row.done ? 'checked' : ''} onchange="updateDailyCheck(${index}, this.checked, this)"></td>
-                <td><button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button></td>
+                <td>
+                    <div class="manage-cell">
+                        <button class="icon-btn" onclick="moveDailyRow(${index}, -1)" title="위로 이동">▲</button>
+                        <button class="icon-btn" onclick="moveDailyRow(${index}, 1)" title="아래로 이동">▼</button>
+                        <button class="icon-btn" onclick="copyDailyRow(${index})" title="이 일정을 다른 날짜로 복사">📋</button>
+                        <button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button>
+                    </div>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -353,6 +387,54 @@
         document.getElementById('dailyMemoInput').value = currentData.memo || "";
         document.getElementById('goalDate').value = appData.goalDate || "";
         updateDailyTotalTimeBadge();
+    };
+
+    // 🔥 행 순서 위아래로 이동하는 함수 🔥
+    window.moveDailyRow = (index, direction) => {
+        const currentData = getCurrentDailyData();
+        if (index + direction < 0 || index + direction >= currentData.plan.length) return; // 맨 위거나 맨 아래면 무시
+        
+        // 데이터 자리 바꾸기
+        let temp = currentData.plan[index];
+        currentData.plan[index] = currentData.plan[index + direction];
+        currentData.plan[index + direction] = temp;
+        
+        window.renderDaily();
+        saveToServer();
+    };
+
+    // 🔥 현재 일정을 다른 날짜로 스마트하게 복사하는 함수 🔥
+    window.copyDailyRow = (index) => {
+        const currentData = getCurrentDailyData();
+        const rowToCopy = currentData.plan[index];
+        
+        // 기본 추천 날짜를 '내일'로 세팅
+        let d = new Date(dailyDateInput.value);
+        d.setDate(d.getDate() + 1);
+        let tomorrowStr = getLocalYMD(d);
+
+        let targetDate = prompt("복사할 날짜를 입력하세요 (예: 2026-04-22)", tomorrowStr);
+        
+        if (targetDate && targetDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            // 그 날짜 데이터 저장소가 없으면 만들어줌
+            if (!appData.dailyStore[targetDate]) {
+                appData.dailyStore[targetDate] = { plan: [], memo: "" };
+            }
+            
+            // 데이터 깊은 복사 (독립적인 새 객체 생성)
+            let newRow = JSON.parse(JSON.stringify(rowToCopy));
+            
+            // 복사된 일정은 백지상태에서 시작할 수 있도록 '완료'와 '실제 실행 결과'를 비워줍니다.
+            newRow.done = false; 
+            newRow.timeActual = "";
+            newRow.contentActual = "";
+            
+            appData.dailyStore[targetDate].plan.push(newRow);
+            saveToServer();
+            alert(`${targetDate} 날짜로 일정이 성공적으로 복사되었습니다!`);
+        } else if (targetDate) {
+            alert("올바른 날짜 형식이 아닙니다. (YYYY-MM-DD 형식으로 입력해주세요)");
+        }
     };
 
     window.updateDailyProgressBar = () => {
@@ -452,7 +534,6 @@
         const goalDiv = document.getElementById('goalContainer');
         goalDiv.innerHTML = '';
         
-        // 🔥 입력 중단 방지: onchange를 빼고, 입력이 완전히 끝나고 칸을 나갈 때(onblur)만 값을 검사합니다 🔥
         visibleGoals.forEach((g) => {
             const realIndex = appData.allGoals.indexOf(g); 
             goalDiv.innerHTML += `
@@ -496,12 +577,10 @@
         renderCalendar();
     };
 
-    // 🔥 날짜 입력을 완전히 끝내고 포커스가 빠졌을 때(onblur)만 실행되는 핵심 로직 🔥
     window.handleMDateBlur = (index, type, val) => {
         window.isTyping = false; 
         let key = (type === 'allGoals') ? 'targetDate' : 'date';
         
-        // 기존 값과 똑같으면 아무것도 안 함 (불필요한 새로고침 방지)
         if (appData[type][index][key] === val) return;
 
         appData[type][index][key] = val;
@@ -514,7 +593,7 @@
             renderCalendar(); 
         } 
         else if (val) {
-            window.renderMonthly(); // 아예 다른 달로 넘어갔으니 화면에서 지워줍니다.
+            window.renderMonthly(); 
         }
         saveToServer();
     };
@@ -536,29 +615,10 @@
         saveToServer();
     };
 
-    window.addGoal = () => { 
-        appData.allGoals.push({text:'', targetDate: monthSelector.value + '-01', done:false}); 
-        window.renderMonthly(); saveToServer(); 
-    };
-    window.addDeadline = () => { 
-        appData.allDeadlines.push({date: monthSelector.value + '-01', text:''}); 
-        window.renderMonthly(); saveToServer(); 
-    };
-    
-    window.deleteM = (index, type) => { 
-        if(confirm("이 항목을 정말 삭제하시겠습니까?")) { 
-            appData[type].splice(index, 1); 
-            window.renderMonthly(); 
-            saveToServer(); 
-        } 
-    };
-    
-    window.updateMonthlyMemo = (val) => { 
-        const currentMonth = monthSelector.value;
-        if (!appData.monthlyDataStore[currentMonth]) appData.monthlyDataStore[currentMonth] = { memo: "" };
-        appData.monthlyDataStore[currentMonth].memo = val; 
-        saveToServer(); 
-    };
+    window.addGoal = () => { appData.allGoals.push({text:'', targetDate: monthSelector.value + '-01', done:false}); window.renderMonthly(); saveToServer(); };
+    window.addDeadline = () => { appData.allDeadlines.push({date: monthSelector.value + '-01', text:''}); window.renderMonthly(); saveToServer(); };
+    window.deleteM = (index, type) => { if(confirm("이 항목을 정말 삭제하시겠습니까?")) { appData[type].splice(index, 1); window.renderMonthly(); saveToServer(); } };
+    window.updateMonthlyMemo = (val) => { const currentMonth = monthSelector.value; if (!appData.monthlyDataStore[currentMonth]) appData.monthlyDataStore[currentMonth] = { memo: "" }; appData.monthlyDataStore[currentMonth].memo = val; saveToServer(); };
 
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
@@ -572,14 +632,14 @@
         
         for(let day=1; day<=daysInMonth; day++) {
             const dStr = `${year}-${month}-${String(day).padStart(2, '0')}`;
-            
             const dayGoals = appData.allGoals.filter(g => g.targetDate === dStr);
             const dayDeads = appData.allDeadlines.filter(d => d.date === dStr);
             let badges = '';
             
             if (appData.dailyStore && appData.dailyStore[dStr]) {
-                if (appData.dailyStore[dStr].plan) {
-                    let dayTotalMins = window.calcTotalMinutes(appData.dailyStore[dStr].plan);
+                let planArr = appData.dailyStore[dStr].plan;
+                if (planArr && planArr.length > 0) {
+                    let dayTotalMins = window.calcTotalMinutes(planArr);
                     if (dayTotalMins > 0) {
                         monthlyTotalMins += dayTotalMins;
                         let h = Math.floor(dayTotalMins / 60);
@@ -587,13 +647,20 @@
                         let timeText = h > 0 ? `${h}h ${m}m` : `${m}m`;
                         badges += `<div class="cal-badge badge-time">⏱️ ${timeText}</div>`;
                     }
+
+                    let totalTasks = planArr.length;
+                    let doneTasks = planArr.filter(r => r.done).length;
+                    let pct = Math.round((doneTasks / totalTasks) * 100);
+                    badges += `<div class="cal-badge badge-pct">📊 달성 ${pct}%</div>`;
                 }
+
                 let dMemo = appData.dailyStore[dStr].memo;
                 if (dMemo && dMemo.trim() !== "") {
                     let shortMemo = dMemo.length > 5 ? dMemo.substring(0, 5) + ".." : dMemo;
                     badges += `<div class="cal-badge badge-memo">📝 ${shortMemo}</div>`;
                 }
             }
+            
             dayDeads.forEach(d => {
                 let txt = d.text ? d.text : '(내용 없음)';
                 badges += `<div class="cal-badge badge-deadline">🚨 ${txt}</div>`;
@@ -602,6 +669,7 @@
                 let txt = g.text ? g.text : '(내용 없음)';
                 badges += `<div class="cal-badge badge-goal" style="${g.done?'opacity:0.5; text-decoration:line-through;':''}">🎯 ${g.done?'✓ ':''}${txt}</div>`;
             });
+            
             grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${dStr}')" title="클릭해서 작성하기"><span class="cal-day-num">${day}</span>${badges}</div>`;
         }
         let mHours = Math.floor(monthlyTotalMins / 60);
