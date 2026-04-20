@@ -35,6 +35,8 @@
         .add-btn { background-color: #3498db; color: white; }
         .add-btn:hover { background-color: #2980b9; }
         .delete-btn { background-color: #e74c3c; color: white; padding: 6px 12px; font-size: 0.85em; }
+        .nav-btn { background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; }
+        .nav-btn:hover { background-color: #bdc3c7; }
         
         .progress-wrapper { margin: 15px 0; background-color: #e0e0e0; border-radius: 8px; overflow: hidden; }
         .progress-bar { height: 26px; background-color: #27ae60; width: 0%; text-align: center; line-height: 26px; color: white; font-weight: bold; transition: width 0.4s ease; }
@@ -47,7 +49,9 @@
         .completed-row input[type="text"] { color: #94a3b8; text-decoration: line-through; }
         .memo-area { width: 100%; height: 120px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; line-height: 1.5; margin-top: 20px; }
 
-        .month-selector-area { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .date-selector-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .time-badge { font-size: 1.2em; font-weight: bold; color: #d35400; background: #fdebd0; padding: 8px 15px; border-radius: 8px; border: 1px solid #fad7a1;}
+        
         .calendar-container { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
         .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); background: #34495e; color: white; text-align: center; font-weight: bold; }
         .calendar-header div { padding: 10px 0; border-right: 1px solid #465c71; }
@@ -69,7 +73,7 @@
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="margin-top:0; color:#2c3e50;">🔒 스터디 플래너</h2>
-        <p style="color:#7f8c8d;">주인만 접근할 수 있습니다.</p>
+        <p style="color:#7f8c8d;">승인된 사용자만 접근할 수 있습니다.</p>
         <button class="login-btn" onclick="loginWithGoogle()">Google 계정으로 로그인</button>
     </div>
 </div>
@@ -95,12 +99,22 @@
     </div>
 
     <div id="dailyView" class="tab-content active">
+        <div class="date-selector-area">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="nav-btn" onclick="changeDailyDay(-1)">◀ 어제</button>
+                <input type="date" id="dailyDateSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="renderDaily()">
+                <button class="nav-btn" onclick="changeDailyDay(1)">내일 ▶</button>
+                <button class="nav-btn" style="margin-left:10px;" onclick="goToToday()">오늘</button>
+            </div>
+            <div id="dailyTotalTime" class="time-badge">⏱️ 총 공부시간: 0시간 0분</div>
+        </div>
+
         <div class="progress-wrapper"><div class="progress-bar" id="progressBar">0%</div></div>
         <table>
             <thead>
                 <tr>
-                    <th style="width: 10%;">날짜</th><th style="width: 15%;">시간(계획)</th><th style="width: 25%;">내용(계획)</th>
-                    <th style="width: 15%;">시간(실제)</th><th style="width: 20%;">내용(실제)</th><th style="width: 5%;">완료</th><th style="width: 10%;">관리</th>
+                    <th style="width: 15%;">계획 시간</th><th style="width: 25%;">계획 내용</th>
+                    <th style="width: 15%;">실제 시간<br><span style="font-size:0.7em; font-weight:normal;">(예: 14:00~16:30)</span></th><th style="width: 25%;">실제 내용</th><th style="width: 5%;">완료</th><th style="width: 10%;">관리</th>
                 </tr>
             </thead>
             <tbody id="plannerBody"></tbody>
@@ -108,12 +122,12 @@
         <h3 style="margin-top: 30px; margin-bottom: 10px; color: #2c3e50; font-size: 1.2em;">오늘의 회고 및 메모</h3>
         <textarea id="dailyMemoInput" class="memo-area" placeholder="오늘 공부하며 느낀 점을 적어보세요." oninput="updateDailyMemo(this.value)"></textarea>
         <div class="btn-group">
-            <button class="add-btn" onclick="addRow()">+ 새 일정 추가</button>
+            <button class="add-btn" onclick="addDailyRow()">+ 새 일정 추가</button>
         </div>
     </div>
 
     <div id="monthlyView" class="tab-content">
-        <div class="month-selector-area">
+        <div class="date-selector-area" style="justify-content: flex-start;">
             <h2 style="margin:0; color:#2c3e50;">선택한 달:</h2>
             <input type="month" id="monthSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="changeMonth()">
         </div>
@@ -143,12 +157,11 @@
 </div>
 
 <script type="module">
-    // 💡 에러의 원인이었던 import 구문을 완벽하게 모두 포함했습니다.
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 💡 아래 firebaseConfig 내용을 본인 프로젝트 정보로 꼭 채워주세요!
+    // 💡 [필수] 본인의 파이어베이스 설정값으로 채워주세요!
     const firebaseConfig = {
     apiKey: "AIzaSyC4J47Xe8eqv9Gf2MNReewVia77G3dyMsc",
     authDomain: "kgb-planner.firebaseapp.com",
@@ -159,62 +172,55 @@
     measurementId: "G-1VM8T24LHW"
     };
 
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
     const docRef = doc(db, "plannerDB", "myData");
 
-    let appData = { dailyPlan: [], dailyMemo: "", goalDate: "", monthlyDataStore: {} };
+    // 데이터베이스 구조에 dailyStore(날짜별 저장소) 추가
+    let appData = { dailyStore: {}, goalDate: "", monthlyDataStore: {} };
     const statusEl = document.getElementById('syncStatus');
     let saveTimeout;
     let unsubscribeSnapshot = null;
 
-    // --- 무한 튕김을 해결한 깔끔한 인증 로직 ---
+    // 인증 로직
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // 로그인이 확인되면 무조건 플래너 화면을 열어줍니다!
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            startSync(); // 데이터 연동 시작
+            startSync();
         } else {
-            // 로그아웃 상태면 로그인 창을 띄웁니다.
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('appContainer').style.display = 'none';
             if(unsubscribeSnapshot) unsubscribeSnapshot();
         }
     });
 
-    // 💡 버튼 에러를 해결하기 위해 window 전역 객체에 연결
-    window.loginWithGoogle = () => {
-        signInWithPopup(auth, provider).catch(error => {
-            console.error("로그인 에러:", error);
-            alert("로그인 중 문제가 발생했습니다: " + error.message);
-        });
-    };
+    window.loginWithGoogle = () => { signInWithPopup(auth, provider).catch(err => alert("로그인 에러: " + err.message)); };
+    window.logout = () => { if(confirm("로그아웃 하시겠습니까?")) signOut(auth); };
 
-    window.logout = () => {
-        if(confirm("로그아웃 하시겠습니까?")) signOut(auth);
-    };
-
-    // --- 데이터 동기화 및 UI 렌더링 ---
+    // 데이터 동기화
     function startSync() {
         unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 appData = docSnap.data();
-                if(!appData.dailyPlan) appData.dailyPlan = [];
+                if(!appData.dailyStore) appData.dailyStore = {};
                 if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
+                
+                // 기존 구버전 데이터(dailyPlan)가 있다면 오늘 날짜로 마이그레이션 (데이터 보존)
+                if(appData.dailyPlan) {
+                    const todayStr = getLocalYMD(new Date());
+                    if(!appData.dailyStore[todayStr]) appData.dailyStore[todayStr] = { plan: appData.dailyPlan, memo: appData.dailyMemo || "" };
+                    delete appData.dailyPlan; delete appData.dailyMemo;
+                    saveToServer();
+                }
                 updateUI();
                 setStatus("✅ 동기화 완료", "sync-done");
             } else {
-                setDoc(docRef, { dailyPlan: [], dailyMemo: "", goalDate: "", monthlyDataStore: {} });
+                setDoc(docRef, { dailyStore: {}, goalDate: "", monthlyDataStore: {} });
             }
-        }, (error) => {
-            // 권한이 없는(UID가 다른) 사람이 접근하면 여기서 차단됩니다.
-            setStatus("❌ 권한 오류 (데이터 접근 불가)", "sync-active");
-            console.error("Firestore 에러:", error);
-        });
+        }, (error) => { setStatus("❌ 권한 오류", "sync-active"); console.error(error); });
     }
 
     function saveToServer() {
@@ -226,52 +232,106 @@
         }, 500);
     }
 
-    function setStatus(msg, className) {
-        statusEl.innerText = msg;
-        statusEl.className = className;
+    function setStatus(msg, className) { statusEl.innerText = msg; statusEl.className = className; }
+
+    // 날짜 포맷 유틸 (YYYY-MM-DD)
+    function getLocalYMD(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
+    // 초기 날짜 세팅
+    const dailyDateInput = document.getElementById('dailyDateSelector');
+    if(!dailyDateInput.value) dailyDateInput.value = getLocalYMD(new Date());
+    
     const monthSelector = document.getElementById('monthSelector');
     if(!monthSelector.value) {
         const today = new Date();
         monthSelector.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     }
 
-    function updateUI() { renderDaily(); renderMonthly(); }
+    function updateUI() { window.renderDaily(); window.renderMonthly(); window.updateDdayDisplay(); }
+
+    // --- 일별 뷰 기능 ---
+    function getCurrentDailyData() {
+        const dStr = dailyDateInput.value;
+        if (!appData.dailyStore[dStr]) appData.dailyStore[dStr] = { plan: [], memo: "" };
+        return appData.dailyStore[dStr];
+    }
+
+    window.changeDailyDay = (offset) => {
+        let d = new Date(dailyDateInput.value);
+        d.setDate(d.getDate() + offset);
+        dailyDateInput.value = getLocalYMD(d);
+        window.renderDaily();
+    };
+    
+    window.goToToday = () => { dailyDateInput.value = getLocalYMD(new Date()); window.renderDaily(); };
+
+    // 💡 시간 계산 핵심 로직 ("14:00~16:30" 형식에서 분 추출)
+    function calcTotalMinutes(planArray) {
+        let totalMin = 0;
+        const regex = /(\d{1,2}):(\d{2})\s*[~-]\s*(\d{1,2}):(\d{2})/;
+        
+        planArray.forEach(row => {
+            if(row.timeActual && !row.timeActual.includes("~") && !row.timeActual.includes("-")) return; // 형식이 안 맞으면 패스
+            let match = row.timeActual.match(regex);
+            if(match) {
+                let start = parseInt(match[1])*60 + parseInt(match[2]);
+                let end = parseInt(match[3])*60 + parseInt(match[4]);
+                if(end < start) end += 24*60; // 새벽을 넘기는 경우 처리 (예: 23:00~02:00)
+                totalMin += (end - start);
+            }
+        });
+        return totalMin;
+    }
 
     window.renderDaily = () => {
+        const currentData = getCurrentDailyData();
         const tbody = document.getElementById('plannerBody');
         tbody.innerHTML = '';
         let completedCount = 0;
-        appData.dailyPlan.forEach((row, index) => {
+        
+        currentData.plan.forEach((row, index) => {
             if(row.done) completedCount++;
             const tr = document.createElement('tr');
             if(row.done) tr.className = 'completed-row';
             tr.innerHTML = `
-                <td><input type="text" value="${row.date}" oninput="updateDailyRow(${index}, 'date', this.value)"></td>
-                <td><input type="text" value="${row.timePlan}" oninput="updateDailyRow(${index}, 'timePlan', this.value)"></td>
-                <td><input type="text" value="${row.contentPlan}" oninput="updateDailyRow(${index}, 'contentPlan', this.value)"></td>
-                <td><input type="text" value="${row.timeActual}" oninput="updateDailyRow(${index}, 'timeActual', this.value)"></td>
-                <td><input type="text" value="${row.contentActual}" oninput="updateDailyRow(${index}, 'contentActual', this.value)"></td>
+                <td><input type="text" value="${row.timePlan || ''}" oninput="updateDailyRow(${index}, 'timePlan', this.value)"></td>
+                <td><input type="text" value="${row.contentPlan || ''}" oninput="updateDailyRow(${index}, 'contentPlan', this.value)"></td>
+                <td><input type="text" placeholder="14:00~16:00" value="${row.timeActual || ''}" oninput="updateDailyRow(${index}, 'timeActual', this.value)"></td>
+                <td><input type="text" value="${row.contentActual || ''}" oninput="updateDailyRow(${index}, 'contentActual', this.value)"></td>
                 <td><input type="checkbox" ${row.done ? 'checked' : ''} onchange="updateDailyRow(${index}, 'done', this.checked)"></td>
                 <td><button class="delete-btn" onclick="deleteDailyRow(${index})">삭제</button></td>
             `;
             tbody.appendChild(tr);
         });
-        const total = appData.dailyPlan.length;
+
+        // 진행률 바 업데이트
+        const total = currentData.plan.length;
         const pct = total === 0 ? 0 : Math.round((completedCount / total) * 100);
         document.getElementById('progressBar').style.width = pct + '%';
         document.getElementById('progressBar').innerText = pct + '% 달성';
-        document.getElementById('dailyMemoInput').value = appData.dailyMemo || "";
+        
+        // 메모 및 목표일 업데이트
+        document.getElementById('dailyMemoInput').value = currentData.memo || "";
         document.getElementById('goalDate').value = appData.goalDate || "";
-        window.updateDdayDisplay();
+
+        // 💡 총 공부시간 합산 및 표시
+        let totalMins = calcTotalMinutes(currentData.plan);
+        let hours = Math.floor(totalMins / 60);
+        let mins = totalMins % 60;
+        document.getElementById('dailyTotalTime').innerText = `⏱️ 총 공부시간: ${hours}시간 ${mins}분`;
     };
 
-    window.updateDailyRow = (index, key, value) => { appData.dailyPlan[index][key] = value; if(key === 'done') renderDaily(); saveToServer(); };
-    window.addRow = () => { appData.dailyPlan.push({ date: '', timePlan: '', contentPlan: '', timeActual: '', contentActual: '', done: false }); renderDaily(); saveToServer(); };
-    window.deleteDailyRow = (index) => { if(confirm("삭제할까요?")) { appData.dailyPlan.splice(index, 1); renderDaily(); saveToServer(); } };
-    window.updateDailyMemo = (val) => { appData.dailyMemo = val; saveToServer(); };
+    window.updateDailyRow = (index, key, value) => { getCurrentDailyData().plan[index][key] = value; window.renderDaily(); saveToServer(); };
+    window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan: '', contentPlan: '', timeActual: '', contentActual: '', done: false }); window.renderDaily(); saveToServer(); };
+    window.deleteDailyRow = (index) => { if(confirm("삭제할까요?")) { getCurrentDailyData().plan.splice(index, 1); window.renderDaily(); saveToServer(); } };
+    window.updateDailyMemo = (val) => { getCurrentDailyData().memo = val; saveToServer(); };
 
+    // --- D-Day 뷰 기능 ---
     window.updateDday = () => { appData.goalDate = document.getElementById('goalDate').value; saveToServer(); window.updateDdayDisplay(); };
     window.updateDdayDisplay = () => {
         const ddayDisplay = document.getElementById('ddayDisplay');
@@ -284,13 +344,14 @@
         else ddayDisplay.innerText = `D+${Math.abs(diff)}`;
     };
 
+    // --- 월별 뷰 기능 ---
     function getCurrentMonthData() {
         const m = monthSelector.value;
         if (!appData.monthlyDataStore[m]) appData.monthlyDataStore[m] = { goals: [], deadlines: [], memo: "" };
         return appData.monthlyDataStore[m];
     }
     
-    window.changeMonth = () => { renderMonthly(); };
+    window.changeMonth = () => { window.renderMonthly(); };
     window.renderMonthly = () => {
         const data = getCurrentMonthData();
         const goalDiv = document.getElementById('goalContainer');
@@ -307,10 +368,10 @@
         renderCalendar(data);
     };
 
-    window.updateM = (index, type, key, val) => { getCurrentMonthData()[type][index][key] = val; if(key === 'done' || type === 'deadlines' || key === 'targetDate') renderMonthly(); saveToServer(); };
-    window.addGoal = () => { getCurrentMonthData().goals.push({text:'', targetDate:'', done:false}); renderMonthly(); saveToServer(); };
-    window.addDeadline = () => { getCurrentMonthData().deadlines.push({date:'', text:''}); renderMonthly(); saveToServer(); };
-    window.deleteM = (index, type) => { getCurrentMonthData()[type].splice(index, 1); renderMonthly(); saveToServer(); };
+    window.updateM = (index, type, key, val) => { getCurrentMonthData()[type][index][key] = val; if(key === 'done' || type === 'deadlines' || key === 'targetDate') window.renderMonthly(); saveToServer(); };
+    window.addGoal = () => { getCurrentMonthData().goals.push({text:'', targetDate:'', done:false}); window.renderMonthly(); saveToServer(); };
+    window.addDeadline = () => { getCurrentMonthData().deadlines.push({date:'', text:''}); window.renderMonthly(); saveToServer(); };
+    window.deleteM = (index, type) => { getCurrentMonthData()[type].splice(index, 1); window.renderMonthly(); saveToServer(); };
     window.updateMonthlyMemo = (val) => { getCurrentMonthData().memo = val; saveToServer(); };
 
     function renderCalendar(data) {
