@@ -203,7 +203,6 @@
     const provider = new GoogleAuthProvider();
     const docRef = doc(db, "plannerDB", "myData");
 
-    // 🔥 통합 데이터 구조 도입 (allGoals, allDeadlines) 🔥
     let appData = { dailyStore: {}, goalDate: "", monthlyDataStore: {}, allGoals: [], allDeadlines: [] };
     const statusEl = document.getElementById('syncStatus');
     let saveTimeout;
@@ -235,29 +234,8 @@
                 if(!appData.monthlyDataStore) appData.monthlyDataStore = {};
                 if(!appData.allGoals) appData.allGoals = [];
                 if(!appData.allDeadlines) appData.allDeadlines = [];
-
-                // 🔥 기존 파편화된 데이터들을 통합 저장소로 이사(마이그레이션)시키는 로직 🔥
-                let migrated = false;
-                if(appData.monthlyDataStore) {
-                    for (let m in appData.monthlyDataStore) {
-                        let mData = appData.monthlyDataStore[m];
-                        if (mData.goals && mData.goals.length > 0) {
-                            appData.allGoals.push(...mData.goals);
-                            mData.goals = []; // 중복 방지
-                            migrated = true;
-                        }
-                        if (mData.deadlines && mData.deadlines.length > 0) {
-                            appData.allDeadlines.push(...mData.deadlines);
-                            mData.deadlines = [];
-                            migrated = true;
-                        }
-                    }
-                }
-                
                 if(!window.isTyping) updateUI();
                 setStatus("✅ 동기화 완료", "sync-done");
-                if(migrated) saveToServer(); // 마이그레이션 결과 서버 반영
-
             } else {
                 setDoc(docRef, { dailyStore: {}, goalDate: "", monthlyDataStore: {}, allGoals: [], allDeadlines: [] });
             }
@@ -326,7 +304,6 @@
     window.goToToday = () => { dailyDateInput.value = getLocalYMD(new Date()); window.renderDaily(); };
     window.goToDate = (dateStr) => { dailyDateInput.value = dateStr; window.switchTab('daily'); window.renderDaily(); };
 
-    // --- 일별 뷰 기능 (V9와 동일하게 완벽) ---
     window.renderDaily = () => {
         const currentData = getCurrentDailyData();
         const tbody = document.getElementById('plannerBody');
@@ -440,7 +417,6 @@
         else ddayDisplay.innerText = `D+${Math.abs(diff)}`;
     };
 
-    // --- 월별 뷰 기능 ---
     window.changeMonthOffset = (offset) => {
         let [y, m] = monthSelector.value.split('-');
         let d = new Date(y, parseInt(m)-1 + offset, 1);
@@ -454,6 +430,12 @@
         window.renderMonthly();
     };
 
+    function getCurrentMonthData() {
+        const m = monthSelector.value;
+        if (!appData.monthlyDataStore[m]) appData.monthlyDataStore[m] = { goals: [], deadlines: [], memo: "" };
+        return appData.monthlyDataStore[m];
+    }
+    
     window.changeMonth = () => { window.renderMonthly(); };
     
     function getDayLabel(dateStr) {
@@ -462,26 +444,23 @@
         return `(${DAY_NAMES[d.getDay()]})`;
     }
 
-    // 🔥 필터링 방식의 월별 목록 렌더링 (통합 저장소 활용) 🔥
     window.renderMonthly = () => {
-        const currentMonth = monthSelector.value; // 예: "2026-04"
-        
-        // 현재 달에 해당하는 것, 혹은 아직 날짜를 정하지 않은 것만 골라냅니다.
+        const currentMonth = monthSelector.value; 
         const visibleGoals = appData.allGoals.filter(g => !g.targetDate || g.targetDate.startsWith(currentMonth));
         const visibleDeadlines = appData.allDeadlines.filter(d => !d.date || d.date.startsWith(currentMonth));
 
         const goalDiv = document.getElementById('goalContainer');
         goalDiv.innerHTML = '';
         
+        // 🔥 입력 중단 방지: onchange를 빼고, 입력이 완전히 끝나고 칸을 나갈 때(onblur)만 값을 검사합니다 🔥
         visibleGoals.forEach((g) => {
-            const realIndex = appData.allGoals.indexOf(g); // 원본 데이터베이스에서의 진짜 위치
+            const realIndex = appData.allGoals.indexOf(g); 
             goalDiv.innerHTML += `
                 <div class="list-item">
                     <input type="checkbox" ${g.done ? 'checked' : ''} onchange="updateMCheck(${realIndex},'allGoals',this.checked)">
                     <input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${g.targetDate}" 
                            onfocus="window.isTyping=true" 
-                           onchange="updateMDate(${realIndex},'allGoals',this.value)" 
-                           onblur="window.isTyping=false">
+                           onblur="handleMDateBlur(${realIndex},'allGoals',this.value)">
                     <span id="m_g_l_${realIndex}" class="day-label">${getDayLabel(g.targetDate)}</span>
                     <input type="text" id="m_g_t_${realIndex}" value="${g.text}" 
                            onfocus="window.isTyping=true" 
@@ -501,8 +480,7 @@
                 <div class="list-item">
                     <input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${d.date}" 
                            onfocus="window.isTyping=true" 
-                           onchange="updateMDate(${realIndex},'allDeadlines',this.value)" 
-                           onblur="window.isTyping=false">
+                           onblur="handleMDateBlur(${realIndex},'allDeadlines',this.value)">
                     <span id="m_d_l_${realIndex}" class="day-label">${getDayLabel(d.date)}</span>
                     <input type="text" id="m_d_t_${realIndex}" value="${d.text}" 
                            onfocus="window.isTyping=true" 
@@ -512,34 +490,32 @@
                 </div>`;
         });
         
-        // 월별 메모는 달마다 따로 관리하는 것이 맞으므로 기존 로직 유지
         if (!appData.monthlyDataStore[currentMonth]) appData.monthlyDataStore[currentMonth] = { memo: "" };
         document.getElementById('monthlyMemoInput').value = appData.monthlyDataStore[currentMonth].memo || "";
         
         renderCalendar();
     };
 
-    // 🔥 날짜 변경 로직: 현재 화면과 다른 달로 지정하면 똑똑하게 치워줍니다! 🔥
-    window.updateMDate = (index, type, val) => {
+    // 🔥 날짜 입력을 완전히 끝내고 포커스가 빠졌을 때(onblur)만 실행되는 핵심 로직 🔥
+    window.handleMDateBlur = (index, type, val) => {
+        window.isTyping = false; 
         let key = (type === 'allGoals') ? 'targetDate' : 'date';
-        appData[type][index][key] = val;
         
+        // 기존 값과 똑같으면 아무것도 안 함 (불필요한 새로고침 방지)
+        if (appData[type][index][key] === val) return;
+
+        appData[type][index][key] = val;
         const currentMonth = monthSelector.value;
         
-        // 1. 만약 새로 지정한 날짜가 현재 달(예: 4월)에 속한다면? 
-        // -> 화면을 통째로 안 그리고 텍스트 포커스를 살리기 위해 디자인만 살짝 바꿈
         if (val && val.startsWith(currentMonth)) {
             let labelId = (type === 'allGoals') ? `m_g_l_${index}` : `m_d_l_${index}`;
             let labelEl = document.getElementById(labelId);
             if(labelEl) labelEl.innerText = getDayLabel(val);
             renderCalendar(); 
         } 
-        // 2. 만약 다른 달(예: 5월)로 지정했다면?
-        // -> 이 달의 화면에서 사라져야 하므로 화면을 다시 그려서 없앰 (5월로 이사 보냄)
         else if (val) {
-            window.renderMonthly(); 
+            window.renderMonthly(); // 아예 다른 달로 넘어갔으니 화면에서 지워줍니다.
         }
-        
         saveToServer();
     };
 
@@ -560,7 +536,6 @@
         saveToServer();
     };
 
-    // 추가 시에는 현재 달력을 보고 있는 날짜로 초기 세팅
     window.addGoal = () => { 
         appData.allGoals.push({text:'', targetDate: monthSelector.value + '-01', done:false}); 
         window.renderMonthly(); saveToServer(); 
@@ -585,7 +560,6 @@
         saveToServer(); 
     };
 
-    // 🔥 달력은 이제 거대한 통합 저장소에서 알아서 자기 날짜를 찾아냅니다! 🔥
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
@@ -599,7 +573,6 @@
         for(let day=1; day<=daysInMonth; day++) {
             const dStr = `${year}-${month}-${String(day).padStart(2, '0')}`;
             
-            // 거대한 주머니(allGoals, allDeadlines)에서 이 날짜와 일치하는 것만 쏙쏙 뽑아옴!
             const dayGoals = appData.allGoals.filter(g => g.targetDate === dStr);
             const dayDeads = appData.allDeadlines.filter(d => d.date === dStr);
             let badges = '';
