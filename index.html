@@ -9,47 +9,63 @@
         .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); position: relative; }
         .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         h1 { margin: 0; color: #2c3e50; font-size: 1.6em; }
+        
         #syncStatus { position: absolute; top: 30px; right: 25px; font-size: 0.85em; font-weight: bold; color: #7f8c8d; background: #ecf0f1; padding: 5px 10px; border-radius: 15px; }
-        .sync-active { color: #f39c12 !important; background: #fdf2e9 !important; }
+        .sync-active { color: #e74c3c !important; background: #fdf2f2 !important; }
         .sync-done { color: #27ae60 !important; background: #eaeded !important; }
+        
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(44, 62, 80, 0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 10000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f7f6; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         .login-btn { background: #4285F4; color: white; border: none; padding: 12px 24px; font-size: 1.1em; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; transition: background 0.2s; }
         .login-btn:hover { background: #3367D6; }
+        
         .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; gap: 5px; }
         .tab { padding: 12px 25px; cursor: pointer; font-weight: bold; color: #95a5a6; border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+        .tab:hover { background-color: #f1f2f6; }
         .tab.active { color: #2c3e50; border-bottom: 3px solid #3498db; background-color: #f8f9fa; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        
         .dday-container { display: flex; align-items: center; gap: 10px; margin-right: 120px; }
         #ddayDisplay { font-weight: bold; font-size: 1.2em; color: #e74c3c; background: #fdf2f2; padding: 6px 14px; border-radius: 20px; }
         .input-box { padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9em; font-family: inherit; }
+        
         button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .add-btn { background-color: #3498db; color: white; }
+        .add-btn:hover { background-color: #2980b9; }
         .add-btn-small { padding: 4px 10px; font-size: 0.85em; }
         .copy-btn { background-color: #2980b9; color: white; padding: 4px 10px; font-size: 0.85em; margin-right: 5px; }
         .delete-btn { background-color: #e74c3c; color: white; padding: 4px 10px; font-size: 0.85em; margin-right: 5px; }
         .nav-btn { background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; }
+        
         .progress-wrapper { background-color: #e0e0e0; border-radius: 8px; overflow: hidden; height: 26px; flex-grow: 1; margin-right: 15px;}
         .progress-bar { height: 100%; background-color: #27ae60; width: 0%; text-align: center; line-height: 26px; color: white; font-weight: bold; transition: width 0.4s ease; }
+        
         .table-container { max-height: 55vh; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; }
         th { background-color: #ecf0f1; font-weight: bold; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); padding: 10px; text-align: center;}
         td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 6px; text-align: center; vertical-align: middle; background-color: #fff;}
         td:last-child, th:last-child { border-right: none; }
+        
         td input[type="text"], td select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
         input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
         .completed-row td { background-color: #f0fdf4; }
         .completed-row input[type="text"] { color: #94a3b8; text-decoration: line-through; }
         .memo-area { width: 100%; height: 120px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; margin-top: 20px; }
+        
+        /* X버튼 CSS */
         .clear-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2em; color: #bdc3c7; cursor: pointer; padding: 0 5px; }
         .clear-btn:hover { color: #e74c3c; }
+
         .drag-handle { cursor: grab; font-size: 1.2em; color: #95a5a6; }
         .draggable-row.dragging { opacity: 0.5; background-color: #f1f2f6; }
         .draggable-row.drag-over { border-top: 3px solid #3498db; }
+
         .date-selector-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
         .time-badge { font-size: 1.1em; font-weight: bold; color: #d35400; background: #fdebd0; padding: 8px 15px; border-radius: 8px; border: 1px solid #fad7a1;}
+        
         .calendar-container { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
         .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); background: #34495e; color: white; text-align: center; font-weight: bold; }
         .calendar-header div { padding: 10px 0; border-right: 1px solid #465c71; }
@@ -59,16 +75,29 @@
         .calendar-cell.empty { background: #f9f9f9; cursor: default; }
         .cal-day-num { font-weight: bold; color: #7f8c8d; font-size: 0.9em; margin-bottom: 5px; }
         .cal-badge { font-size: 0.75em; padding: 4px 6px; border-radius: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;}
-        .badge-goal { background-color: #3498db; } .badge-deadline { background-color: #e67e22; } .badge-time { background-color: #27ae60; text-align: center; font-weight: bold;} .badge-memo { background-color: #9b59b6; } .badge-pct { background-color: #1abc9c; text-align: center; font-weight: bold; } 
+        .badge-goal { background-color: #3498db; }
+        .badge-deadline { background-color: #e67e22; }
+        .badge-time { background-color: #27ae60; text-align: center; font-weight: bold;}
+        .badge-memo { background-color: #9b59b6; }
+        .badge-pct { background-color: #1abc9c; text-align: center; font-weight: bold; } 
+        
         .monthly-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .monthly-card { background: #fdfdfd; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+        
         .chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 250px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px;}
         .bar-wrapper { display: flex; flex-direction: column; align-items: center; width: 10%; }
         .bar { width: 100%; background-color: #3498db; border-radius: 4px 4px 0 0; transition: height 0.5s; display:flex; justify-content:center; align-items:flex-start; padding-top:5px; color:white; font-size:0.8em; font-weight:bold;}
         .bar-label { margin-top: 10px; font-size: 0.85em; font-weight: bold; color: #2c3e50; }
         .stat-summary { display: flex; justify-content: space-around; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-top: 20px;}
-        .stat-box { text-align: center; } .stat-num { font-size: 2em; font-weight: bold; color: #27ae60; }
-        @media (max-width: 768px) { .table-container { max-height: unset; overflow-x: auto; } table { min-width: 900px; } .date-selector-area { flex-direction: column; align-items: flex-start; } .monthly-grid { grid-template-columns: 1fr; } }
+        .stat-box { text-align: center; }
+        .stat-num { font-size: 2em; font-weight: bold; color: #27ae60; }
+        
+        @media (max-width: 768px) {
+            .table-container { max-height: unset; overflow-x: auto; }
+            table { min-width: 900px; }
+            .date-selector-area { flex-direction: column; align-items: flex-start; }
+            .monthly-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -167,6 +196,7 @@
         <div class="monthly-card"><h3 style="margin-top:0; border-bottom:2px solid #ecf0f1; padding-bottom:10px;">📝 월간 회고</h3>
         <textarea id="monthlyMemoInput" class="memo-area" oninput="updateMonthlyMemo(this.value)"></textarea></div>
     </div>
+    
     <div id="statsView" class="tab-content">
         <h2 style="color:#2c3e50;">🔥 최근 7일 공부 시간 흐름</h2><div class="chart-container" id="statChart"></div>
         <div class="stat-summary"><div class="stat-box"><div style="color:#7f8c8d; font-weight:bold;">이번 달 총 공부시간</div><div class="stat-num" id="statMonthTotal">0h 0m</div></div>
@@ -176,10 +206,10 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 💡 [필수] 아래에 본인의 파이어베이스 설정값을 넣어주세요! 💡
+    // 💡 [필수] 본인의 파이어베이스 API 키 정보 입력
     const firebaseConfig = {
         apiKey: "AIzaSyC4J47Xe8eqv9Gf2MNReewVia77G3dyMsc",
         authDomain: "kgb-planner.firebaseapp.com",
@@ -202,6 +232,7 @@
     const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
     window.showToast = (msg) => { const toast = document.getElementById('toast'); toast.innerText = msg; toast.style.opacity = '1'; clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000); };
+    
     window.addEventListener('keydown', (e) => {
         if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addDailyRow(); }
         if (e.altKey && e.key.toLowerCase() === 'c') { e.preventDefault(); bulkCopyRows(); }
@@ -217,7 +248,7 @@
         if (user) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            updateUI(); // 🔥 로그인 즉시 대기 화면 해제용 초기 렌더링 🔥
+            updateUI(); 
             startSync();
         } else {
             document.getElementById('loginOverlay').style.display = 'flex';
@@ -229,23 +260,37 @@
     function startSync() {
         unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
-                appData = { ...appData, ...docSnap.data() };
+                let data = docSnap.data();
+                appData = { ...appData, ...data };
                 if(!appData.templates) appData.templates = {};
+                
+                // 마이그레이션 (과거 데이터에 studyType 빈칸 채워넣기)
+                for(let date in appData.dailyStore) {
+                    if(appData.dailyStore[date].plan) {
+                        appData.dailyStore[date].plan.forEach(row => {
+                            if(row.studyType === undefined) row.studyType = "";
+                        });
+                    }
+                }
                 if(!window.isTyping) updateUI();
                 setStatus("✅ 동기화 완료", "sync-done");
             } else {
-                // 🔥 데이터가 없을 때도 대기 상태를 해제함 🔥
-                setStatus("✅ 새 플래너 연결됨", "sync-done");
-                setDoc(docRef, appData);
+                setStatus("✅ 새 플래너 생성됨", "sync-done");
+                // 🔥 데이터베이스 문서가 없으면 최초 생성 (저장실패 원천차단) 🔥
+                setDoc(docRef, appData, { merge: true });
             }
         }, (error) => { setStatus("❌ 권한 오류 (콘솔 확인)", "sync-active"); console.error(error); });
     }
 
+    // 🔥 updateDoc 대신 무적의 setDoc(merge:true) 적용 🔥
     function saveToServer() {
         setStatus("☁️ 저장 중...", "sync-active");
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(async () => {
-            try { await updateDoc(docRef, appData); setStatus("✅ 저장됨", "sync-done"); } 
+            try { 
+                await setDoc(docRef, appData, { merge: true }); 
+                setStatus("✅ 저장됨", "sync-done"); 
+            } 
             catch(e) { console.error(e); setStatus("❌ 저장 실패", "sync-active"); }
         }, 1000); 
     }
@@ -275,7 +320,8 @@
     window.renderDaily = () => {
         const cur = getCurrentDailyData(); const tbody = document.getElementById('plannerBody'); tbody.innerHTML = '';
         document.getElementById('dailyDayOfWeek').innerText = `(${DAY_NAMES[new Date(document.getElementById('dailyDateSelector').value).getDay()]})`;
-        document.getElementById('selectAllCheckbox').checked = false;
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        if(selectAllCb) selectAllCb.checked = false;
 
         cur.plan.forEach((row, i) => {
             const tr = document.createElement('tr'); tr.className = `draggable-row ${row.done?'completed-row':''}`;
@@ -287,12 +333,13 @@
                     const item = cur.plan.splice(draggedRowIndex,1)[0]; cur.plan.splice(i,0,item); window.renderDaily(); saveToServer();
                 } draggedRowIndex=null;
             };
+            
             tr.innerHTML = `
                 <td><input type="checkbox" class="bulk-move-checkbox" data-index="${i}"></td>
                 <td class="drag-handle">☰</td>
                 <td><input type="text" id="input_timePlan_${i}" style="text-align:center;" value="${row.timePlan||''}" onfocus="window.isTyping=true" onkeydown="handleGridKey(event,${i},'timePlan')" oninput="updateDailyData(${i},'timePlan',this.value)" onblur="handleTimeBlur(${i},'timePlan',this)"></td>
                 <td><select onchange="updateDailyData(${i},'studyType',this.value)"><option value="" ${!row.studyType?'selected':''}>선택</option><option value="강의" ${row.studyType==='강의'?'selected':''}>강의</option><option value="기본서" ${row.studyType==='기본서'?'selected':''}>기본서</option></select></td>
-                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentPlan_${i}" value="${row.contentPlan||''}" onfocus="window.isTyping=true" onkeydown="handleGridKey(event,${i},'contentPlan')" oninput="updateDailyData(${i},'contentPlan',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentPlan')" class="clear-btn">✕</button></div></td>
+                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentPlan_${i}" value="${row.contentPlan||''}" style="padding-right:25px;" onfocus="window.isTyping=true" onkeydown="handleGridKey(event,${i},'contentPlan')" oninput="updateDailyData(${i},'contentPlan',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentPlan')" class="clear-btn">✕</button></div></td>
                 <td><input type="text" id="input_timeActual_${i}" style="text-align:center;" value="${row.timeActual||''}" onfocus="window.isTyping=true" onkeydown="handleGridKey(event,${i},'timeActual')" oninput="updateDailyData(${i},'timeActual',this.value)" onblur="handleTimeBlur(${i},'timeActual',this)"></td>
                 <td><input type="text" id="input_contentActual_${i}" value="${row.contentActual||''}" onfocus="window.isTyping=true" onkeydown="handleGridKey(event,${i},'contentActual')" oninput="updateDailyData(${i},'contentActual',this.value)" onblur="window.isTyping=false"></td>
                 <td><input type="checkbox" ${row.done?'checked':''} onchange="updateDailyCheck(${i},this.checked,this)"></td>
@@ -330,7 +377,8 @@
     window.updateDailyData = (i, k, v) => { getCurrentDailyData().plan[i][k] = v; if(k==='timeActual') updateDailyTotalTimeBadge(); saveToServer(); };
     window.updateDailyCheck = (i, c, el) => { getCurrentDailyData().plan[i].done = c; el.closest('tr').classList.toggle('completed-row', c); updateDailyProgressBar(); saveToServer(); };
     window.handleTimeBlur = (i, k, el) => { window.isTyping=false; let v=el.value, c=v.replace(/[^0-9]/g,''); if(c.length===8){ let f=`${c.slice(0,2)}:${c.slice(2,4)}~${c.slice(4,6)}:${c.slice(6,8)}`; getCurrentDailyData().plan[i][k]=f; el.value=f; } else { getCurrentDailyData().plan[i][k]=v; } updateDailyTotalTimeBadge(); saveToServer(); };
-    window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan:'', studyType:'', contentPlan:'', timeActual:'', contentActual:'', done:false }); window.renderDaily(); saveToServer(); };
+    
+    window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan:'', studyType:'', contentPlan:'', timeActual:'', contentActual:'', done:false }); window.renderDaily(); saveToServer(); showToast("새 일정 추가됨"); };
     window.updateDailyMemo = (v) => { getCurrentDailyData().memo = v; saveToServer(); };
     window.updateDday = () => { appData.goalDate = document.getElementById('goalDate').value; saveToServer(); window.updateDdayDisplay(); };
     window.updateDdayDisplay = () => { const el = document.getElementById('ddayDisplay'); if(!appData.goalDate) return el.innerText="D-Day 미설정"; let d = Math.ceil((new Date(appData.goalDate).setHours(0,0,0,0) - new Date().setHours(0,0,0,0))/86400000); el.innerText= d===0?"D-Day(오늘!)":d>0?`D-${d}`:`D+${Math.abs(d)}`; };
@@ -338,18 +386,20 @@
     window.changeMonthOffset=(o)=>{let[y,m]=document.getElementById('monthSelector').value.split('-'); let d=new Date(y,m-1+o,1); document.getElementById('monthSelector').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; window.renderMonthly();};
     window.goToThisMonth=()=>{document.getElementById('monthSelector').value=getLocalYMD(new Date()).slice(0,7); window.renderMonthly();};
     window.changeMonth=()=>window.renderMonthly();
+    
     window.renderMonthly=()=>{
         const m = document.getElementById('monthSelector').value, gv = appData.allGoals.filter(g=>!g.targetDate||g.targetDate.startsWith(m)), dv = appData.allDeadlines.filter(d=>!d.date||d.date.startsWith(m));
-        const gc = document.getElementById('goalContainer'); gc.innerHTML = ''; gv.forEach(g=>{ const ri=appData.allGoals.indexOf(g); gc.innerHTML+=`<div class="list-item"><input type="checkbox" ${g.done?'checked':''} onchange="updateMCheck(${ri},'allGoals',this.checked)"><input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${g.targetDate}" onfocus="window.isTyping=true" onblur="handleMDateBlur(${ri},'allGoals',this.value)"><span class="day-label">(${DAY_NAMES[new Date(g.targetDate).getDay()]||''})</span><input type="text" value="${g.text}" onfocus="window.isTyping=true" oninput="updateMText(${ri},'allGoals',this.value)" onblur="window.isTyping=false" style="${g.done?'text-decoration:line-through;color:#ccc':''}"> <button class="delete-btn" onclick="deleteM(${ri},'allGoals')">삭제</button></div>`;});
-        const dc = document.getElementById('deadlineContainer'); dc.innerHTML = ''; dv.forEach(d=>{ const ri=appData.allDeadlines.indexOf(d); dc.innerHTML+=`<div class="list-item"><input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${d.date}" onfocus="window.isTyping=true" onblur="handleMDateBlur(${ri},'allDeadlines',this.value)"><span class="day-label">(${DAY_NAMES[new Date(d.date).getDay()]||''})</span><input type="text" value="${d.text}" onfocus="window.isTyping=true" oninput="updateMText(${ri},'allDeadlines',this.value)" onblur="window.isTyping=false"> <button class="delete-btn" onclick="deleteM(${ri},'allDeadlines')">삭제</button></div>`;});
+        const gc = document.getElementById('goalContainer'); gc.innerHTML = ''; gv.forEach(g=>{ const ri=appData.allGoals.indexOf(g); gc.innerHTML+=`<div class="list-item"><input type="checkbox" ${g.done?'checked':''} onchange="updateMCheck(${ri},'allGoals',this.checked)"><input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${g.targetDate}" onfocus="window.isTyping=true" onblur="handleMDateBlur(${ri},'allGoals',this.value)"><span class="day-label">(${DAY_NAMES[new Date(g.targetDate).getDay()]||''})</span><input type="text" value="${g.text}" onfocus="window.isTyping=true" oninput="updateMText(${ri},'allGoals',this.value)" onblur="window.isTyping=false" style="${g.done?'text-decoration:line-through;color:#ccc':''}"> <button class="delete-btn" style="padding:4px 10px;" onclick="deleteM(${ri},'allGoals')">삭제</button></div>`;});
+        const dc = document.getElementById('deadlineContainer'); dc.innerHTML = ''; dv.forEach(d=>{ const ri=appData.allDeadlines.indexOf(d); dc.innerHTML+=`<div class="list-item"><input type="date" max="9999-12-31" class="input-box" style="width:130px;" value="${d.date}" onfocus="window.isTyping=true" onblur="handleMDateBlur(${ri},'allDeadlines',this.value)"><span class="day-label">(${DAY_NAMES[new Date(d.date).getDay()]||''})</span><input type="text" value="${d.text}" onfocus="window.isTyping=true" oninput="updateMText(${ri},'allDeadlines',this.value)" onblur="window.isTyping=false"> <button class="delete-btn" style="padding:4px 10px;" onclick="deleteM(${ri},'allDeadlines')">삭제</button></div>`;});
         if(!appData.monthlyDataStore[m]) appData.monthlyDataStore[m]={memo:""}; document.getElementById('monthlyMemoInput').value=appData.monthlyDataStore[m].memo||""; renderCalendar();
     };
+    
     window.handleMDateBlur=(i,t,v)=>{window.isTyping=false; let k=(t==='allGoals'?'targetDate':'date'); if(appData[t][i][k]===v)return; appData[t][i][k]=v; window.renderMonthly(); saveToServer();};
     window.updateMText=(i,t,v)=>{appData[t][i].text=v; renderCalendar(); saveToServer();};
     window.updateMCheck=(i,t,c)=>{appData[t][i].done=c; renderCalendar(); window.renderMonthly(); saveToServer();};
-    window.addGoal=()=>{appData.allGoals.push({text:'',targetDate:document.getElementById('monthSelector').value+'-01',done:false}); window.renderMonthly(); saveToServer();};
-    window.addDeadline=()=>{appData.allDeadlines.push({date:document.getElementById('monthSelector').value+'-01',text:''}); window.renderMonthly(); saveToServer();};
-    window.deleteM=(i,t)=>{if(confirm("삭제?")){appData[t].splice(i,1); window.renderMonthly(); saveToServer();}};
+    window.addGoal=()=>{appData.allGoals.push({text:'',targetDate:document.getElementById('monthSelector').value+'-01',done:false}); window.renderMonthly(); saveToServer(); showToast("목표 추가됨");};
+    window.addDeadline=()=>{appData.allDeadlines.push({date:document.getElementById('monthSelector').value+'-01',text:''}); window.renderMonthly(); saveToServer(); showToast("일정 추가됨");};
+    window.deleteM=(i,t)=>{if(confirm("삭제하시겠습니까?")){appData[t].splice(i,1); window.renderMonthly(); saveToServer(); showToast("삭제 완료");}};
     window.updateMonthlyMemo=(v)=>{const m=document.getElementById('monthSelector').value; if(!appData.monthlyDataStore[m])appData.monthlyDataStore[m]={memo:""}; appData.monthlyDataStore[m].memo=v; saveToServer();};
 
     function renderCalendar() {
