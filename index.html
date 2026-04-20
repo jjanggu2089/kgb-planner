@@ -195,9 +195,10 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div>
                             <label><input type="checkbox" id="selectAllGoals" onchange="toggleSelectAllMonthly('allGoals', this.checked)"> 전체선택</label>
-                            <button class="delete-btn" style="margin-left:5px; padding: 5px 5px; font-size: 0.8em;" onclick="bulkDeleteMonthly('allGoals')">🗑️ 선택 삭제</button>
                         </div>
-                        <button class="add-btn add-btn-small" onclick="addGoal()">+ 추가</button>
+                        <div style="display: flex; gap: 5px;"> <button class="delete-btn" style="padding: 8px 15px; font-size: 0.85em;" onclick="bulkDeleteMonthly('allGoals')">🗑️ 선택 삭제</button>
+                            <button class="add-btn add-btn-small" onclick="addGoal()">+ 추가</button>
+                        </div>
                     </div>
                     <div id="goalContainer"></div>
                 </div>
@@ -207,9 +208,10 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div>
                             <label><input type="checkbox" id="selectAllDeadlines" onchange="toggleSelectAllMonthly('allDeadlines', this.checked)"> 전체선택</label>
-                            <button class="delete-btn" style="margin-left:5px; padding: 5px 5px; font-size: 0.8em;" onclick="bulkDeleteMonthly('allDeadlines')">🗑️ 선택 삭제</button>
                         </div>
-                        <button class="add-btn add-btn-small" onclick="addDeadline()">+ 추가</button>
+                        <div style="display: flex; gap: 5px;"> <button class="delete-btn" style="padding: 8px 15px; font-size: 0.85em;" onclick="bulkDeleteMonthly('allDeadlines')">🗑️ 선택 삭제</button>
+                            <button class="add-btn add-btn-small" onclick="addDeadline()">+ 추가</button>
+                        </div>
                     </div>
                     <div id="deadlineContainer"></div>
                 </div>
