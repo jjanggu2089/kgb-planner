@@ -104,7 +104,7 @@
         </div>
         <div class="dday-container">
             <span style="font-size: 0.9em; color: #666;">목표 날짜:</span>
-            <input type="date" id="goalDate" class="input-box" onkeydown="handleInnerTabKey(event)" onchange="updateDday()">
+            <input type="date" id="goalDate" class="input-box" onchange="updateDday()">
             <button onclick="logout()" style="background:#e74c3c; color:white; padding:5px 10px; font-size:0.8em; margin-left:10px;">로그아웃</button>
         </div>
     </div>
@@ -118,7 +118,7 @@
         <div class="date-selector-area">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="nav-btn" onclick="changeDailyDay(-1)">◀ 어제</button>
-                <input type="date" id="dailyDateSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onkeydown="handleInnerTabKey(event)" onchange="renderDaily()">
+                <input type="date" id="dailyDateSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="renderDaily()">
                 <span id="dailyDayOfWeek" style="font-size: 1.2em; font-weight: bold; color: #34495e;">(요일)</span>
                 <button class="nav-btn" style="margin-left:5px;" onclick="changeDailyDay(1)">내일 ▶</button>
                 <button class="nav-btn" style="margin-left:10px;" onclick="goToToday()">오늘</button>
@@ -149,7 +149,7 @@
         <div class="date-selector-area">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="nav-btn" onclick="changeMonthOffset(-1)">◀ 이전 달</button>
-                <input type="month" id="monthSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onkeydown="handleInnerTabKey(event)" onchange="changeMonth()">
+                <input type="month" id="monthSelector" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="changeMonth()">
                 <button class="nav-btn" onclick="changeMonthOffset(1)">다음 달 ▶</button>
                 <button class="nav-btn" style="margin-left:10px;" onclick="goToThisMonth()">이번 달</button>
             </div>
@@ -213,17 +213,6 @@
     
     window.isTyping = false; 
     const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-
-    // 🔥 브라우저 기본 Tab 동작 가로채기 (날짜, 시간 입력칸 내부 전용) 🔥
-    // window 객체에 등록하여 모든 HTML 인라인 이벤트에서 접근 가능하도록 수정했습니다.
-    window.handleInnerTabKey = (e) => {
-        if (e.key === 'Tab') {
-            e.preventDefault(); // 밖으로 튕겨 나가는 것을 막음
-            // 자바스크립트로 직접 '오른쪽 화살표(ArrowRight)'를 누른 효과를 줌
-            const arrowEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, which: 39, bubbles: true });
-            e.target.dispatchEvent(arrowEvent);
-        }
-    };
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -331,15 +320,15 @@
             const tr = document.createElement('tr');
             if(row.done) tr.className = 'completed-row';
             
-            // 🔥 시간 입력(<input type="time">)에 onkeydown="handleInnerTabKey(event)" 유지 🔥
+            // onkeydown 부분 제거
             tr.innerHTML = `
                 <td><input type="text" value="${row.timePlan || ''}" onchange="updateDailyRow(${index}, 'timePlan', this.value, false)"></td>
                 <td><input type="text" value="${row.contentPlan || ''}" onchange="updateDailyRow(${index}, 'contentPlan', this.value, false)"></td>
                 <td>
                     <div class="time-input-group">
-                        <input type="time" class="time-input" value="${row.timeActualStart || ''}" onkeydown="handleInnerTabKey(event)" onchange="updateDailyRow(${index}, 'timeActualStart', this.value, true)">
+                        <input type="time" class="time-input" value="${row.timeActualStart || ''}" onchange="updateDailyRow(${index}, 'timeActualStart', this.value, true)">
                         <span style="color:#7f8c8d; font-weight:bold;">~</span>
-                        <input type="time" class="time-input" value="${row.timeActualEnd || ''}" onkeydown="handleInnerTabKey(event)" onchange="updateDailyRow(${index}, 'timeActualEnd', this.value, true)">
+                        <input type="time" class="time-input" value="${row.timeActualEnd || ''}" onchange="updateDailyRow(${index}, 'timeActualEnd', this.value, true)">
                     </div>
                 </td>
                 <td><input type="text" value="${row.contentActual || ''}" onchange="updateDailyRow(${index}, 'contentActual', this.value, false)"></td>
@@ -426,12 +415,11 @@
         const goalDiv = document.getElementById('goalContainer');
         goalDiv.innerHTML = '';
         
-        // 🔥 월별 목표: 날짜 입력(<input type="date">)에 onkeydown="handleInnerTabKey(event)" 추가 🔥
         data.goals.forEach((g, i) => {
             goalDiv.innerHTML += `
                 <div class="list-item">
                     <input type="checkbox" ${g.done ? 'checked' : ''} onchange="updateM(${i},'goals','done',this.checked, true)">
-                    <input type="date" class="input-box" style="width:130px;" value="${g.targetDate}" onkeydown="handleInnerTabKey(event)" onchange="updateM(${i},'goals','targetDate',this.value, true)">
+                    <input type="date" class="input-box" style="width:130px;" value="${g.targetDate}" onchange="updateM(${i},'goals','targetDate',this.value, true)">
                     <span class="day-label">${getDayLabel(g.targetDate)}</span>
                     <input type="text" value="${g.text}" onchange="updateM(${i},'goals','text',this.value, false)" style="${g.done ? 'text-decoration:line-through; color:#ccc;' : ''}">
                     <button class="delete-btn" onclick="deleteM(${i},'goals')">삭제</button>
@@ -441,11 +429,10 @@
         const deadlineDiv = document.getElementById('deadlineContainer');
         deadlineDiv.innerHTML = '';
         
-        // 🔥 월별 일정: 날짜 입력(<input type="date">)에 onkeydown="handleInnerTabKey(event)" 추가 🔥
         data.deadlines.forEach((d, i) => {
             deadlineDiv.innerHTML += `
                 <div class="list-item">
-                    <input type="date" class="input-box" style="width:130px;" value="${d.date}" onkeydown="handleInnerTabKey(event)" onchange="updateM(${i},'deadlines','date',this.value, true)">
+                    <input type="date" class="input-box" style="width:130px;" value="${d.date}" onchange="updateM(${i},'deadlines','date',this.value, true)">
                     <span class="day-label">${getDayLabel(d.date)}</span>
                     <input type="text" value="${d.text}" onchange="updateM(${i},'deadlines','text',this.value, false)">
                     <button class="delete-btn" onclick="deleteM(${i},'deadlines')">삭제</button>
