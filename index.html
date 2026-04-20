@@ -10,7 +10,6 @@
         .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         h1 { margin: 0; color: #2c3e50; font-size: 1.6em; }
         
-        /* 🔥 상태 표시줄을 화면에서 보이지 않게 숨기되, 기능은 유지함 🔥 */
         #syncStatus { position: absolute; top: 0; right: 0; font-size: 1px; color: transparent; pointer-events: none; }
         
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(44, 62, 80, 0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 10000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
@@ -46,12 +45,27 @@
         .date-selector-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
         .time-badge { font-size: 1.1em; font-weight: bold; color: #d35400; background: #fdebd0; padding: 8px 15px; border-radius: 8px; border: 1px solid #fad7a1;}
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: #eee; gap: 1px; }
-        .calendar-cell { background: #fff; min-height: 100px; padding: 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+        .calendar-cell { background: #fff; min-height: 100px; padding: 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: background-color 0.3s ease; }
         .cal-badge { font-size: 0.75em; padding: 4px 6px; border-radius: 4px; color: #fff; overflow: hidden; text-overflow: ellipsis; }
         .badge-pct { background-color: #1abc9c; text-align: center; font-weight: bold; }
         .chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 250px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px;}
         .bar { width: 100%; background-color: #3498db; border-radius: 4px 4px 0 0; display:flex; justify-content:center; align-items:flex-start; padding-top:5px; color:white; font-size:0.8em; font-weight:bold;}
         .stat-num { font-size: 2em; font-weight: bold; color: #27ae60; }
+        
+        /* 🔥 새로 추가된 스타일 🔥 */
+        .affirmation-input { width: 100%; padding: 15px; border: 2px dashed #a29bfe; border-radius: 8px; font-size: 1.2em; font-weight: bold; text-align: center; color: #6c5ce7; background-color: #f6f5ff; margin-bottom: 20px; box-sizing: border-box; transition: all 0.3s ease; }
+        .affirmation-input:focus { outline: none; border-color: #6c5ce7; background-color: #fff; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.1); }
+        
+        .goal-progress-wrapper { background-color: #ecf0f1; border-radius: 20px; overflow: hidden; height: 22px; margin-bottom: 15px; border: 1px solid #bdc3c7;}
+        .goal-progress-bar { height: 100%; background-color: #f39c12; width: 0%; text-align: center; line-height: 22px; color: white; font-size: 0.85em; font-weight: bold; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* 잔디심기 컬러 (GitHub 스타일) */
+        .heatmap-0 { background-color: #ffffff; }
+        .heatmap-1 { background-color: #d4edda; } /* 2시간 미만 */
+        .heatmap-2 { background-color: #a3d7b0; } /* 4시간 미만 */
+        .heatmap-3 { background-color: #5bbd72; color: white !important;} /* 6시간 미만 */
+        .heatmap-4 { background-color: #28a745; color: white !important;} /* 6시간 이상 */
+
         @media (max-width: 768px) { .table-container { max-height: unset; overflow-x: auto; } table { min-width: 900px; } .date-selector-area { flex-direction: column; } .dday-wrapper { justify-content: flex-start; } }
     </style>
 </head>
@@ -99,6 +113,8 @@
     </div>
 
     <div id="dailyView" class="tab-content active">
+        <input type="text" id="dailyAffirmation" class="affirmation-input" placeholder="✨ 오늘의 다짐이나 명언을 적어보세요! (자동 저장)" oninput="updateDailyAffirmation(this.value)">
+
         <div class="date-selector-area">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="nav-btn" onclick="changeDailyDay(-1)">◀ 어제</button>
@@ -146,8 +162,13 @@
         </div>
         <div class="calendar-container"><div class="calendar-header"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div><div class="calendar-grid" id="calendarGrid"></div></div>
         <div class="monthly-grid">
-            <div class="monthly-card"><h3>🎯 핵심 목표</h3><button class="add-btn add-btn-small" onclick="addGoal()">+ 추가</button><div id="goalContainer"></div></div>
-            <div class="monthly-card"><h3>🚨 주요 일정</h3><button class="add-btn add-btn-small" onclick="addDeadline()">+ 추가</button><div id="deadlineContainer"></div></div>
+            <div class="monthly-card">
+                <h3>🎯 핵심 목표</h3>
+                <div class="goal-progress-wrapper"><div class="goal-progress-bar" id="monthlyGoalProgress">0% 달성</div></div>
+                <button class="add-btn add-btn-small" onclick="addGoal()" style="margin-bottom: 10px;">+ 추가</button>
+                <div id="goalContainer"></div>
+            </div>
+            <div class="monthly-card"><h3>🚨 주요 일정</h3><button class="add-btn add-btn-small" onclick="addDeadline()" style="margin-bottom: 10px;">+ 추가</button><div id="deadlineContainer"></div></div>
         </div>
     </div>
 
@@ -161,7 +182,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -185,7 +206,6 @@
     window.isTyping = false; let draggedRowIndex = null;
     const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 🔥 에러 방지용 안전 상태 업데이트 함수 🔥
     function setStatus(msg, className) {
         const el = document.getElementById('syncStatus');
         if (el) { el.innerText = msg; el.className = className; }
@@ -256,7 +276,8 @@
     function getCurrentDailyData() {
         const sel = document.getElementById('dailyDateSelector');
         if(!sel.value) sel.value = getLocalYMD(new Date());
-        if (!appData.dailyStore[sel.value]) appData.dailyStore[sel.value] = { plan: [], memo: "" };
+        // 🔥 affirmation 필드 기본값 추가 🔥
+        if (!appData.dailyStore[sel.value]) appData.dailyStore[sel.value] = { plan: [], memo: "", affirmation: "" };
         return appData.dailyStore[sel.value];
     }
 
@@ -269,6 +290,9 @@
         const cur = getCurrentDailyData(); const tbody = document.getElementById('plannerBody'); tbody.innerHTML = '';
         document.getElementById('dailyDayOfWeek').innerText = `(${DAY_NAMES[new Date(document.getElementById('dailyDateSelector').value).getDay()]})`;
         document.getElementById('selectAllCheckbox').checked = false;
+        
+        // 🔥 확언 텍스트 바인딩 🔥
+        document.getElementById('dailyAffirmation').value = cur.affirmation || "";
 
         cur.plan.forEach((row, i) => {
             const tr = document.createElement('tr'); tr.className = `draggable-row ${row.done?'completed-row':''}`;
@@ -292,6 +316,9 @@
         updateDailyProgressBar(); document.getElementById('dailyMemoInput').value = cur.memo || ""; updateDailyTotalTimeBadge();
     };
 
+    // 🔥 확언 저장 함수 🔥
+    window.updateDailyAffirmation = (v) => { getCurrentDailyData().affirmation = v; saveToServer(); };
+
     window.bulkDeleteRows = () => {
         let indices = []; document.querySelectorAll('.bulk-move-checkbox').forEach(cb => { if(cb.checked) indices.push(parseInt(cb.dataset.index)); });
         if(!indices.length) return showToast("선택된 일정이 없습니다.");
@@ -303,7 +330,7 @@
         if(!indices.length) return showToast("선택된 일정이 없습니다.");
         let target = prompt("복사할 날짜 (YYYY-MM-DD)");
         if(target && target.match(/^\d{4}-\d{2}-\d{2}$/)){
-            if(!appData.dailyStore[target]) appData.dailyStore[target] = { plan:[], memo: "" };
+            if(!appData.dailyStore[target]) appData.dailyStore[target] = { plan:[], memo: "", affirmation: "" };
             indices.forEach(idx => { let item = JSON.parse(JSON.stringify(getCurrentDailyData().plan[idx])); item.done=false; item.timeActual=""; item.contentActual=""; appData.dailyStore[target].plan.push(item); });
             saveToServer(); showToast("복사 완료!");
         }
@@ -321,7 +348,6 @@
     window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan:'', studyType:'', contentPlan:'', timeActual:'', contentActual:'', done:false }); window.renderDaily(); saveToServer(); };
     window.updateDailyMemo = (v) => { getCurrentDailyData().memo = v; saveToServer(); };
 
-    // 🔥 다중 D-Day 기능 로직 🔥
     window.renderDdays = () => {
         const container = document.getElementById('ddayContainer');
         container.innerHTML = '';
@@ -350,13 +376,22 @@
     window.changeMonth=()=>window.renderMonthly();
     window.renderMonthly=()=>{
         const m = document.getElementById('monthSelector').value, gv = appData.allGoals.filter(g=>!g.targetDate||g.targetDate.startsWith(m)), dv = appData.allDeadlines.filter(d=>!d.date||d.date.startsWith(m));
+        
+        // 🔥 목표 달성률 게이지 계산 및 렌더링 🔥
+        const totalGoals = gv.length;
+        const completedGoals = gv.filter(g => g.done).length;
+        const goalPct = totalGoals ? Math.round((completedGoals / totalGoals) * 100) : 0;
+        const pBar = document.getElementById('monthlyGoalProgress');
+        pBar.style.width = goalPct + '%';
+        pBar.innerText = goalPct > 0 ? goalPct + '% 달성' : '0% 달성';
+
         const gc = document.getElementById('goalContainer'); gc.innerHTML = ''; gv.forEach(g=>{ const ri=appData.allGoals.indexOf(g); gc.innerHTML+=`<div class="list-item"><input type="checkbox" ${g.done?'checked':''} onchange="updateMCheck(${ri},'allGoals',this.checked)"><input type="date" value="${g.targetDate}" onblur="handleMDateBlur(${ri},'allGoals',this.value)"> <input type="text" value="${g.text}" oninput="updateMText(${ri},'allGoals',this.value)"> <button class="delete-btn" onclick="deleteM(${ri},'allGoals')">삭제</button></div>`;});
         const dc = document.getElementById('deadlineContainer'); dc.innerHTML = ''; dv.forEach(d=>{ const ri=appData.allDeadlines.indexOf(d); dc.innerHTML+=`<div class="list-item"><input type="date" value="${d.date}" onblur="handleMDateBlur(${ri},'allDeadlines',this.value)"> <input type="text" value="${d.text}" oninput="updateMText(${ri},'allDeadlines',this.value)"> <button class="delete-btn" onclick="deleteM(${ri},'allDeadlines')">삭제</button></div>`;});
         renderCalendar();
     };
     window.handleMDateBlur=(i,t,v)=>{let k=(t==='allGoals'?'targetDate':'date'); appData[t][i][k]=v; window.renderMonthly(); saveToServer();};
     window.updateMText=(i,t,v)=>{appData[t][i].text=v; saveToServer();};
-    window.updateMCheck=(i,t,c)=>{appData[t][i].done=c; saveToServer();};
+    window.updateMCheck=(i,t,c)=>{appData[t][i].done=c; window.renderMonthly(); saveToServer();};
     window.addGoal=()=>{appData.allGoals.push({text:'',targetDate:document.getElementById('monthSelector').value+'-01',done:false}); window.renderMonthly(); saveToServer();};
     window.addDeadline=()=>{appData.allDeadlines.push({date:document.getElementById('monthSelector').value+'-01',text:''}); window.renderMonthly(); saveToServer();};
     window.deleteM=(i,t)=>{if(confirm("삭제?")){appData[t].splice(i,1); window.renderMonthly(); saveToServer();}};
@@ -370,23 +405,41 @@
         for(let i=0; i<first; i++) grid.innerHTML += `<div class="calendar-cell empty"></div>`;
         for(let d=1; d<=days; d++){
             const ds = `${year}-${month}-${String(d).padStart(2,'0')}`; let b = '';
+            
+            // 🔥 잔디심기용 변수 초기화 🔥
+            let dayMins = 0;
+            let heatmapClass = 'heatmap-0';
+
             if(appData.dailyStore[ds] && appData.dailyStore[ds].plan && appData.dailyStore[ds].plan.length){
-                let p=appData.dailyStore[ds].plan; let m=window.calcTotalMinutes(p); totalMins+=m;
-                if(m>0) b+=`<div class="cal-badge badge-time">⏱️ ${Math.floor(m/60)}h ${m%60}m</div>`;
+                let p=appData.dailyStore[ds].plan; 
+                dayMins = window.calcTotalMinutes(p); 
+                totalMins += dayMins;
+                
+                if(dayMins>0) b+=`<div class="cal-badge badge-time">⏱️ ${Math.floor(dayMins/60)}h ${dayMins%60}m</div>`;
                 let pct=Math.round(p.filter(r=>r.done).length/p.length*100); b+=`<div class="cal-badge badge-pct">📊 ${pct}%</div>`;
             }
+
+            // 🔥 시간에 따른 잔디 클래스 배정 🔥
+            if (dayMins > 0 && dayMins < 120) heatmapClass = 'heatmap-1';
+            else if (dayMins >= 120 && dayMins < 240) heatmapClass = 'heatmap-2';
+            else if (dayMins >= 240 && dayMins < 360) heatmapClass = 'heatmap-3';
+            else if (dayMins >= 360) heatmapClass = 'heatmap-4';
+
             appData.allDeadlines.filter(x=>x.date===ds).forEach(x=>b+=`<div class="cal-badge badge-deadline">🚨 ${x.text||'..'}</div>`);
             appData.allGoals.filter(x=>x.targetDate===ds).forEach(x=>b+=`<div class="cal-badge badge-goal" style="${x.done?'opacity:0.5;text-decoration:line-through':''}">🎯 ${x.text||'..'}</div>`);
-            grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${ds}')"><span class="cal-day-num">${d}</span>${b}</div>`;
+            
+            // 🔥 셀에 heatmap 클래스 적용 🔥
+            grid.innerHTML += `<div class="calendar-cell ${heatmapClass}" onclick="goToDate('${ds}')"><span class="cal-day-num" style="${dayMins >= 240 ? 'color:white; font-weight:bold;' : ''}">${d}</span>${b}</div>`;
         }
         document.getElementById('monthlyTotalTime').innerText = `🗓️ 월 누적 시간: ${Math.floor(totalMins/60)}시간 ${totalMins%60}분`;
     }
 
     window.exportDataToCSV = () => {
-        let csv = "\uFEFF날짜,순서,계획시간,분류,계획내용,실제시간,실제내용,완료여부\n";
+        let csv = "\uFEFF날짜,확언,순서,계획시간,분류,계획내용,실제시간,실제내용,완료여부\n";
         Object.keys(appData.dailyStore).sort().forEach(date => {
+            const aff = (appData.dailyStore[date].affirmation || '').replace(/"/g,'""');
             appData.dailyStore[date].plan.forEach((p, i) => {
-                csv += `${date},${i+1},${p.timePlan},${p.studyType},"${(p.contentPlan||'').replace(/"/g,'""')}",${p.timeActual},"${(p.contentActual||'').replace(/"/g,'""')}",${p.done?'완료':'미완료'}\n`;
+                csv += `${date},"${aff}",${i+1},${p.timePlan},${p.studyType},"${(p.contentPlan||'').replace(/"/g,'""')}",${p.timeActual},"${(p.contentActual||'').replace(/"/g,'""')}",${p.done?'완료':'미완료'}\n`;
             });
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
