@@ -42,7 +42,36 @@
         .completed-row input[type="text"] { color: #94a3b8; text-decoration: line-through; }
         .memo-area { width: 100%; height: 120px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; margin-top: 20px; }
         .clear-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2em; color: #bdc3c7; cursor: pointer; padding: 0 5px; }
-        .drag-handle { cursor: grab; font-size: 1.2em; color: #95a5a6; }
+        
+        /* 🔥 드래그 핸들 UI 개선 🔥 */
+        .drag-handle { 
+            cursor: default; /* 손가락 모양 대신 기본 화살표 */
+            font-size: 1.2em; 
+            color: #95a5a6; 
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            user-select: none; /* 텍스트 선택 방지 */
+        }
+        .drag-handle:hover {
+            background-color: #e8f4fd; /* 마우스 오버 시 배경색 */
+            color: #2c3e50;
+            transform: scale(1.1); /* 살짝 커지는 효과 */
+            outline: 1px solid #3498db;
+        }
+
+        /* 🔥 체크박스 클릭 편의성 개선 🔥 */
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #27ae60; /* 체크 시 초록색 (최신 브라우저 지원) */
+            vertical-align: middle;
+            margin: 0;
+        }
+        label {
+            cursor: pointer;
+        }
+
         .date-selector-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
         .time-badge { font-size: 1.1em; font-weight: bold; color: #d35400; background: #fdebd0; padding: 8px 15px; border-radius: 8px; border: 1px solid #fad7a1;}
         
@@ -54,23 +83,22 @@
         .cal-day-num { font-weight: bold; color: #333; margin-bottom: 2px; }
         .cal-badge { font-size: 0.75em; padding: 4px 6px; border-radius: 4px; color: #fff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.1);}
         
-        /* 🔥 드래그 가능한 배지 마우스 오버(Hover) 효과 개선 🔥 */
         .cal-badge.draggable { 
-            cursor: default; /* 마우스 화살표 모양으로 고정 */
+            cursor: default;
             position: relative;
             transition: all 0.15s ease; 
         }
         .cal-badge.draggable:hover { 
-            outline: 2px solid #2c3e50; /* 명확한 테두리 */
+            outline: 2px solid #2c3e50; 
             outline-offset: -1px; 
-            filter: brightness(0.9); /* 살짝 어두워지는 피드백 */
-            transform: scale(1.02); /* 마우스 올렸을 때 살짝 튀어나옴 */
+            filter: brightness(0.9); 
+            transform: scale(1.02); 
             z-index: 10;
         }
         .cal-badge.draggable:active { 
             cursor: default; 
             opacity: 0.8; 
-            transform: scale(0.98); /* 클릭 시 살짝 눌리는 효과 */
+            transform: scale(0.98); 
         }
 
         .badge-time { background-color: #3498db; }
@@ -150,6 +178,7 @@
             <div style="display: flex; gap: 5px; align-items: center;">
                 <select id="templateSelect" class="input-box" style="width: 120px;"><option value="">템플릿 선택...</option></select>
                 <button class="nav-btn" onclick="loadTemplate()">불러오기</button>
+                <button class="nav-btn" style="color: #e74c3c; border-color: #e74c3c;" onclick="deleteTemplate()">삭제</button>
                 <button class="add-btn add-btn-small" onclick="saveTemplate()">현재 일정 저장</button>
             </div>
             <div id="dailyTotalTime" class="time-badge">⏱️ 하루 공부시간: 0시간 0분</div>
@@ -196,8 +225,8 @@
                 <div class="goal-progress-wrapper"><div class="goal-progress-bar" id="monthlyGoalProgress">0% 달성</div></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div>
-                        <input type="checkbox" onchange="toggleSelectAllMonthly('allGoals', this.checked)"> 전체선택
-                        <button class="delete-btn" onclick="bulkDeleteMonthly('allGoals')">🗑️ 선택 삭제</button>
+                        <label><input type="checkbox" onchange="toggleSelectAllMonthly('allGoals', this.checked)"> 전체선택</label>
+                        <button class="delete-btn" style="margin-left:5px;" onclick="bulkDeleteMonthly('allGoals')">🗑️ 선택 삭제</button>
                     </div>
                     <button class="add-btn add-btn-small" onclick="addGoal()">+ 새 목표</button>
                 </div>
@@ -208,8 +237,8 @@
                 <h3>🚨 주요 일정</h3>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div>
-                        <input type="checkbox" onchange="toggleSelectAllMonthly('allDeadlines', this.checked)"> 전체선택
-                        <button class="delete-btn" onclick="bulkDeleteMonthly('allDeadlines')">🗑️ 선택 삭제</button>
+                        <label><input type="checkbox" onchange="toggleSelectAllMonthly('allDeadlines', this.checked)"> 전체선택</label>
+                        <button class="delete-btn" style="margin-left:5px;" onclick="bulkDeleteMonthly('allDeadlines')">🗑️ 선택 삭제</button>
                     </div>
                     <button class="add-btn add-btn-small" onclick="addDeadline()">+ 새 일정</button>
                 </div>
@@ -391,25 +420,26 @@
 
         const dateNum = parseInt(selectedDate.replace(/-/g, ''));
         if(!isNaN(dateNum)) {
-            document.getElementById('dailyAffirmation').innerHTML = `✨ <b>오늘의 한마디:</b> ${quotes[dateNum % quotes.length]}`;
+            document.getElementById('dailyAffirmation').innerHTML = `✨ <b>오늘의 한마디:</b> ${quotes[dateNum % quotes.length] || "오늘도 파이팅!"}`;
         }
 
         cur.plan.forEach((row, i) => {
             const tr = document.createElement('tr'); tr.className = `draggable-row ${row.done?'completed-row':''}`;
-            tr.setAttribute('draggable', 'true');
+            // 🔥 드래그 이벤트 수정: 특정 영역(순서)만 드래그되도록 처리 🔥
             tr.ondragstart=(e)=>{draggedRowIndex=i; e.target.classList.add('dragging');};
+            tr.ondragend=(e)=>{ e.target.classList.remove('dragging'); e.target.setAttribute('draggable', false); };
             tr.ondragover=(e)=>e.preventDefault();
             tr.ondrop=(e)=>{ e.preventDefault(); if(draggedRowIndex!==null && draggedRowIndex!==i){ const item = cur.plan.splice(draggedRowIndex,1)[0]; cur.plan.splice(i,0,item); window.renderDaily(); saveToServer(); } draggedRowIndex=null; };
             
             tr.innerHTML = `
                 <td><input type="checkbox" class="bulk-move-checkbox" data-index="${i}"></td>
-                <td class="drag-handle">☰</td>
-                <td><input type="text" id="input_timePlan_${i}" style="text-align:center;" value="${row.timePlan||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'timePlan',this.value)" onblur="handleTimeBlur(${i},'timePlan',this)"></td>
+                <td class="drag-handle" onmousedown="this.parentElement.setAttribute('draggable', true)" onmouseup="this.parentElement.setAttribute('draggable', false)">☰</td>
+                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_timePlan_${i}" style="text-align:center; padding-right:20px;" value="${row.timePlan||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'timePlan',this.value)" onblur="handleTimeBlur(${i},'timePlan',this)"><button onclick="clearDailyContent(${i},'timePlan')" class="clear-btn" tabindex="-1">✕</button></div></td>
                 <td><select onchange="updateDailyData(${i},'studyType',this.value)"><option value="" ${!row.studyType?'selected':''}>선택</option><option value="강의" ${row.studyType==='강의'?'selected':''}>강의</option><option value="기본서" ${row.studyType==='기본서'?'selected':''}>기본서</option></select></td>
-                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentPlan_${i}" value="${row.contentPlan||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'contentPlan',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentPlan')" class="clear-btn">✕</button></div></td>
-                <td><input type="text" id="input_timeActual_${i}" style="text-align:center;" value="${row.timeActual||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'timeActual',this.value)" onblur="handleTimeBlur(${i},'timeActual',this)"></td>
-                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentActual_${i}" value="${row.contentActual||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'contentActual',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentActual')" class="clear-btn">✕</button></div></td>
-                <td><input type="checkbox" ${row.done?'checked':''} onchange="updateDailyCheck(${i},this.checked,this)"></td>
+                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentPlan_${i}" value="${row.contentPlan||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'contentPlan',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentPlan')" class="clear-btn" tabindex="-1">✕</button></div></td>
+                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_timeActual_${i}" style="text-align:center; padding-right:20px;" value="${row.timeActual||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'timeActual',this.value)" onblur="handleTimeBlur(${i},'timeActual',this)"><button onclick="clearDailyContent(${i},'timeActual')" class="clear-btn" tabindex="-1">✕</button></div></td>
+                <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentActual_${i}" value="${row.contentActual||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'contentActual',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentActual')" class="clear-btn" tabindex="-1">✕</button></div></td>
+                <td><label><input type="checkbox" ${row.done?'checked':''} onchange="updateDailyCheck(${i},this.checked,this)"></label></td>
             `;
             tbody.appendChild(tr);
         });
@@ -436,6 +466,19 @@
     window.clearDailyContent = (index, key) => { getCurrentDailyData().plan[index][key] = ''; window.renderDaily(); saveToServer(); };
     window.saveTemplate = () => { let p = getCurrentDailyData().plan; if(!p.length) return; let n = prompt("템플릿 이름"); if(n){ appData.templates[n] = p.map(r=>({timePlan:r.timePlan, studyType:r.studyType||'', contentPlan:r.contentPlan, timeActual:'', contentActual:'', done:false})); updateTemplateDropdown(); saveToServer(); showToast("저장됨"); } };
     window.loadTemplate = () => { let v = document.getElementById('templateSelect').value; if(!v) return; getCurrentDailyData().plan.push(...JSON.parse(JSON.stringify(appData.templates[v]))); window.renderDaily(); saveToServer(); showToast("불러오기 완료"); };
+    
+    // 🔥 템플릿 삭제 기능 추가 🔥
+    window.deleteTemplate = () => {
+        let v = document.getElementById('templateSelect').value;
+        if(!v) return showToast("삭제할 템플릿을 선택하세요.");
+        if(confirm(`'${v}' 템플릿을 삭제하시겠습니까?`)){
+            delete appData.templates[v];
+            updateTemplateDropdown();
+            saveToServer();
+            showToast("삭제되었습니다.");
+        }
+    };
+
     window.updateTemplateDropdown = () => { let s = document.getElementById('templateSelect'); s.innerHTML = '<option value="">템플릿 선택...</option>'; for(let k in appData.templates) s.innerHTML += `<option value="${k}">${k}</option>`; };
     window.updateDailyProgressBar = () => { let p = getCurrentDailyData().plan, t=p.length, c=p.filter(r=>r.done).length, pct=t?Math.round(c/t*100):0; document.getElementById('progressBar').style.width=pct+'%'; document.getElementById('progressBar').innerText=pct+'%'; };
     window.updateDailyTotalTimeBadge = () => { let m=window.calcTotalMinutes(getCurrentDailyData().plan); document.getElementById('dailyTotalTime').innerText=`⏱️ 하루 공부시간: ${Math.floor(m/60)}시간 ${m%60}분`; };
