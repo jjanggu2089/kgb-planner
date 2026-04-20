@@ -8,7 +8,8 @@
         body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); position: relative; }
         .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        h1 { margin: 0; color: #2c3e50; font-size: 1.6em; }
+        h1 { margin: 0; color: #2c3e50; font-size: 1.6em; cursor: pointer; transition: opacity 0.2s; }
+        h1:hover { opacity: 0.7; }
         
         #syncStatus { position: fixed; top: 20px; right: 20px; font-size: 0.9em; font-weight: bold; padding: 10px 20px; border-radius: 8px; z-index: 10000; transition: opacity 0.3s ease; opacity: 0; pointer-events: none; background-color: #e74c3c; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         
@@ -43,66 +44,41 @@
         .memo-area { width: 100%; height: 120px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; margin-top: 20px; }
         .clear-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2em; color: #bdc3c7; cursor: pointer; padding: 0 5px; }
         
-        /* 🔥 드래그 핸들 UI 개선 🔥 */
-        .drag-handle { 
-            cursor: default; /* 손가락 모양 대신 기본 화살표 */
-            font-size: 1.2em; 
-            color: #95a5a6; 
-            transition: all 0.2s ease;
-            border-radius: 4px;
-            user-select: none; /* 텍스트 선택 방지 */
-        }
-        .drag-handle:hover {
-            background-color: #e8f4fd; /* 마우스 오버 시 배경색 */
-            color: #2c3e50;
-            transform: scale(1.1); /* 살짝 커지는 효과 */
-            outline: 1px solid #3498db;
-        }
+        .drag-handle { cursor: default; font-size: 1.2em; color: #95a5a6; transition: all 0.2s ease; border-radius: 4px; user-select: none; }
+        .drag-handle:hover { background-color: #e8f4fd; color: #2c3e50; transform: scale(1.1); outline: 1px solid #3498db; }
 
-        /* 🔥 체크박스 클릭 편의성 개선 🔥 */
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: #27ae60; /* 체크 시 초록색 (최신 브라우저 지원) */
-            vertical-align: middle;
-            margin: 0;
-        }
-        label {
-            cursor: pointer;
-        }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #27ae60; vertical-align: middle; margin: 0; }
+        label { cursor: pointer; }
 
         .date-selector-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
         .time-badge { font-size: 1.1em; font-weight: bold; color: #d35400; background: #fdebd0; padding: 8px 15px; border-radius: 8px; border: 1px solid #fad7a1;}
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: #eee; gap: 1px; border: 1px solid #eee; border-top: none;}
         .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; background: #ecf0f1; padding: 10px 0; border: 1px solid #eee; border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .calendar-cell { background: #fff; min-height: 110px; padding: 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: background 0.2s;}
+        .calendar-cell { background: #fff; min-height: 110px; padding: 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: background 0.2s; position: relative;}
         .calendar-cell:hover { background: #f1f8ff; }
         .calendar-cell.drag-over { background: #e8f4fd; border: 2px dashed #3498db; }
         .cal-day-num { font-weight: bold; color: #333; margin-bottom: 2px; }
         .cal-badge { font-size: 0.75em; padding: 4px 6px; border-radius: 4px; color: #fff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.1);}
         
-        .cal-badge.draggable { 
-            cursor: default;
-            position: relative;
-            transition: all 0.15s ease; 
-        }
-        .cal-badge.draggable:hover { 
-            outline: 2px solid #2c3e50; 
-            outline-offset: -1px; 
-            filter: brightness(0.9); 
-            transform: scale(1.02); 
-            z-index: 10;
-        }
-        .cal-badge.draggable:active { 
-            cursor: default; 
-            opacity: 0.8; 
-            transform: scale(0.98); 
+        /* 🔥 회고 뱃지 호버 효과 🔥 */
+        .badge-memo { background-color: #9b59b6; transition: all 0.2s; }
+        .badge-memo:hover { 
+            white-space: normal; 
+            position: absolute; 
+            z-index: 100; 
+            background: #8e44ad; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+            padding: 8px; 
+            width: calc(100% - 16px);
+            left: 8px;
+            top: 30px;
         }
 
+        .cal-badge.draggable { cursor: default; position: relative; transition: all 0.15s ease; }
+        .cal-badge.draggable:hover { outline: 2px solid #2c3e50; outline-offset: -1px; filter: brightness(0.9); transform: scale(1.02); z-index: 10; }
+
         .badge-time { background-color: #3498db; }
-        .badge-memo { background-color: #9b59b6; }
         .badge-goal { background-color: #f39c12; }
         .badge-deadline { background-color: #e74c3c; }
 
@@ -148,7 +124,7 @@
 
 <div class="container" id="appContainer" style="display: none;">
     <div class="header-section">
-        <div><h1>📝 플래너 Pro Max</h1></div>
+        <div><h1 onclick="switchTab('monthly')">📝 플래너 Pro Max</h1></div>
         <div style="display: flex; flex-direction: column; align-items: flex-end;">
             <div id="ddayContainer" class="dday-wrapper"></div>
             <div style="margin-top: 8px;">
@@ -159,52 +135,12 @@
     </div>
 
     <div class="tabs">
-        <div id="tabDaily" class="tab active" onclick="switchTab('daily')">📅 일별 플래너</div>
-        <div id="tabMonthly" class="tab" onclick="switchTab('monthly')">🎯 월별 플래너</div>
+        <div id="tabMonthly" class="tab active" onclick="switchTab('monthly')">🎯 월별 플래너</div>
+        <div id="tabDaily" class="tab" onclick="switchTab('daily')">📅 일별 플래너</div>
         <div id="tabStats" class="tab" onclick="switchTab('stats')">📊 통계 분석</div>
     </div>
 
-    <div id="dailyView" class="tab-content active">
-        <div id="dailyAffirmation" class="affirmation-box">✨ 명언 로딩중...</div>
-
-        <div class="date-selector-area">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button class="nav-btn" onclick="changeDailyDay(-1)">◀ 어제</button>
-                <input type="date" id="dailyDateSelector" max="9999-12-31" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="renderDaily()">
-                <span id="dailyDayOfWeek" style="font-size: 1.2em; font-weight: bold; color: #34495e;">(요일)</span>
-                <button class="nav-btn" onclick="changeDailyDay(1)">내일 ▶</button>
-                <button class="nav-btn" style="margin-left:10px;" onclick="goToToday()">오늘</button>
-            </div>
-            <div style="display: flex; gap: 5px; align-items: center;">
-                <select id="templateSelect" class="input-box" style="width: 120px;"><option value="">템플릿 선택...</option></select>
-                <button class="nav-btn" onclick="loadTemplate()">불러오기</button>
-                <button class="nav-btn" style="color: #e74c3c; border-color: #e74c3c;" onclick="deleteTemplate()">삭제</button>
-                <button class="add-btn add-btn-small" onclick="saveTemplate()">현재 일정 저장</button>
-            </div>
-            <div id="dailyTotalTime" class="time-badge">⏱️ 하루 공부시간: 0시간 0분</div>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div class="progress-wrapper"><div class="progress-bar" id="progressBar">0%</div></div>
-            <div style="display: flex;">
-                <button class="delete-btn" onclick="bulkDeleteRows()">🗑️ 선택 삭제</button>
-                <button class="copy-btn" onclick="bulkCopyRows()">📋 선택 복사</button>
-                <button class="add-btn add-btn-small" onclick="addDailyRow()">+ 새 일정 추가</button>
-            </div>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead><tr>
-                    <th style="width: 4%;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)"></th>
-                    <th style="width: 4%;">순서</th><th style="width: 14%;">계획 시간</th><th style="width: 10%;">분류</th>
-                    <th style="width: 24%;">계획 내용</th><th style="width: 15%;">실제 시간</th><th style="width: 24%;">실제 내용</th><th style="width: 5%;">완료</th>
-                </tr></thead>
-                <tbody id="plannerBody"></tbody>
-            </table>
-        </div>
-        <textarea id="dailyMemoInput" class="memo-area" placeholder="오늘의 회고 (여기에 적은 내용은 월별 캘린더에 연동됩니다!)" oninput="updateDailyMemo(this.value)"></textarea>
-    </div>
-
-    <div id="monthlyView" class="tab-content">
+    <div id="monthlyView" class="tab-content active">
         <div class="date-selector-area">
             <div>
                 <button class="nav-btn" onclick="changeMonthOffset(-1)">◀</button>
@@ -245,6 +181,46 @@
                 <div id="deadlineContainer"></div>
             </div>
         </div>
+    </div>
+
+    <div id="dailyView" class="tab-content">
+        <div id="dailyAffirmation" class="affirmation-box">✨ 명언 로딩중...</div>
+
+        <div class="date-selector-area">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="nav-btn" onclick="changeDailyDay(-1)">◀ 어제</button>
+                <input type="date" id="dailyDateSelector" max="9999-12-31" class="input-box" style="font-size: 1.2em; font-weight: bold;" onchange="renderDaily()">
+                <span id="dailyDayOfWeek" style="font-size: 1.2em; font-weight: bold; color: #34495e;">(요일)</span>
+                <button class="nav-btn" onclick="changeDailyDay(1)">내일 ▶</button>
+                <button class="nav-btn" style="margin-left:10px;" onclick="goToToday()">오늘</button>
+            </div>
+            <div style="display: flex; gap: 5px; align-items: center;">
+                <select id="templateSelect" class="input-box" style="width: 120px;"><option value="">템플릿 선택...</option></select>
+                <button class="nav-btn" onclick="loadTemplate()">불러오기</button>
+                <button class="nav-btn" style="color: #e74c3c; border-color: #e74c3c;" onclick="deleteTemplate()">삭제</button>
+                <button class="add-btn add-btn-small" onclick="saveTemplate()">현재 일정 저장</button>
+            </div>
+            <div id="dailyTotalTime" class="time-badge">⏱️ 하루 공부시간: 0시간 0분</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="progress-wrapper"><div class="progress-bar" id="progressBar">0%</div></div>
+            <div style="display: flex;">
+                <button class="delete-btn" onclick="bulkDeleteRows()">🗑️ 선택 삭제</button>
+                <button class="copy-btn" onclick="bulkCopyRows()">📋 선택 복사</button>
+                <button class="add-btn add-btn-small" onclick="addDailyRow()">+ 새 일정 추가</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead><tr>
+                    <th style="width: 4%;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)"></th>
+                    <th style="width: 4%;">순서</th><th style="width: 14%;">계획 시간</th><th style="width: 10%;">분류</th>
+                    <th style="width: 24%;">계획 내용</th><th style="width: 15%;">실제 시간</th><th style="width: 24%;">실제 내용</th><th style="width: 5%;">완료</th>
+                </tr></thead>
+                <tbody id="plannerBody"></tbody>
+            </table>
+        </div>
+        <textarea id="dailyMemoInput" class="memo-area" placeholder="오늘의 회고 (여기에 적은 내용은 월별 캘린더에 연동됩니다!)" oninput="updateDailyMemo(this.value)"></textarea>
     </div>
 
     <div id="statsView" class="tab-content">
@@ -291,9 +267,7 @@
     window.isTyping = false; let draggedRowIndex = null;
     const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-    const quotes = [
-        "시작하는 비결은 바로 지금 움직이는 것이다.", "생각만 하는 자는 결코 목적지에 도달할 수 없다.", "완벽한 타이밍이란 존재하지 않는다. 지금이 바로 그 때다.", "망설임은 기회를 죽이는 가장 빠른 방법이다.", "일단 시작하라. 방법은 길 위에서 찾게 될 것이다.", "내일의 나에게 미안하지 않도록 오늘을 살아라.", "작은 한 걸음이 위대한 여정의 시작이다.", "준비가 덜 되었을 때 시작하는 것이 진짜 용기다.", "할 수 있다는 믿음보다 강력한 엔진은 없다.", "어제보다 나은 오늘을 만드는 것은 오직 행동뿐이다.", "비바람이 불지 않는 나무는 깊은 뿌리를 내릴 수 없다.", "포기하고 싶은 순간, 왜 시작했는지를 기억하라.", "천천히 가는 것을 두려워 말고, 멈춰 서는 것을 두려워하라.", "가장 늦었다고 생각할 때가 가장 빠른 때다.", "한 번의 실패는 성공으로 가는 길의 이정표일 뿐이다.", "성공은 99번의 거절 끝에 찾아오는 1번의 승낙이다.", "한 방울의 물이 바위를 뚫는 것은 힘이 아니라 반복이다.", "끝까지 버티는 자가 결국 웃게 된다.", "고통은 잠시지만, 영광은 영원하다.", "한계는 내가 설정한 마음의 벽일 뿐이다.", "오늘의 게으름은 내일의 빚이 된다.", "시간은 돈으로 살 수 없는 가장 공평한 자산이다.", "매일 1%씩만 성장해도 1년 뒤에는 37배 성장한다.", "운은 성실함이 기회를 만났을 때 생기는 불꽃이다.", "남들이 쉴 때 움직이는 자가 앞서나간다.", "사소한 습관이 모여 한 사람의 인생을 결정한다.", "자신을 이기는 자가 세상에서 가장 강한 자다.", "시간을 지배하는 자가 인생을 지배한다.", "성공한 사람의 화려함 뒤에는 수만 번의 반복이 있다.", "기적은 하늘에서 떨어지는 것이 아니라 스스로 만드는 것이다.", "꿈을 날짜와 함께 적으면 목표가 되고, 목표를 나누면 계획이 된다.", "별을 보며 걷는 사람은 진흙탕 길에서도 실망하지 않는다.", "너의 미래는 오늘 무엇을 하느냐에 달려 있다.", "세상이 안 된다고 말할 때, 스스로에게 왜 안 돼라고 물어라.", "가장 큰 위험은 아무런 도전도 하지 않는 것이다.", "꿈이 없는 인생은 항로 없는 배와 같다.", "당신은 당신이 생각하는 것보다 훨씬 더 위대하다.", "남의 시선에 갇혀 당신의 가능성을 죽이지 마라.", "상상이 현실이 되는 유일한 방법은 실행이다.", "가슴 뛰는 일을 찾아라. 그것이 당신의 연료가 될 것이다.", "지금 쉬면 편하겠지만, 나중에는 쉬고 싶어도 쉴 수 없게 된다.", "핑계는 자기 자신에게만 통하는 마약이다.", "남들이 당신을 과소평가하게 두지 마라. 실력으로 증명하라.", "나중이라는 단어는 실패자들의 가장 달콤한 무덤이다.", "재능이 없다고 탓하지 마라. 당신은 재능을 덮을 만큼 노력해 본 적이 있는가?", "오늘의 당신이 내일의 당신을 만든다. 지금의 모습에 만족하는가?", "변명 중에서도 가장 어리석은 변명은 시간이 없어서이다.", "노력하지 않으면서 얻기를 바라는 것은 도둑질과 다름없다.", "경쟁자는 지금도 페이지를 넘기고 있다.", "당신이 멈춘 그 자리가 누군가에게는 기회다.", "비가 온 뒤에 땅이 굳는다. 지금의 시련은 성장의 토양이다.", "무너져도 괜찮다. 다시 일어나는 법을 배우는 중일 뿐이다.", "성장은 계단식이다. 정체기는 다음 단계로 점프하기 위한 발판이다.", "당신이 느끼는 불안함은 당신이 잘하고 싶어 한다는 증거다.", "어둠 속에 있을 때야말로 당신의 빛이 가장 밝게 빛날 기회다.", "오늘의 실수는 내일의 노하우가 된다.", "남과 비교하지 말고, 어제의 자신과 비교하라.", "감정에 속지 마라. 기분은 변해도 할 일은 변하지 않는다.", "힘들다는 것은 지금 산을 오르고 있다는 뜻이다.", "휴식은 포기가 아니다. 더 멀리 가기 위한 전략적 후퇴다.", "태도가 곧 고도를 결정한다.", "운명은 결정된 것이 아니라, 당신의 선택으로 만들어가는 것이다.", "불평하는 데 쓰는 에너지를 해결하는 데 써라.", "성공의 반대는 실패가 아니라 하지 않는 것이다.", "세상이 너를 바꿀 수 없게 하라. 네가 세상을 바꿔라.", "긍정적인 생각은 부정적인 상황을 이기는 유일한 무기다.", "배움에는 끝이 없다. 겸손한 마음이 성장의 문을 연다.", "자신감은 준비된 자만이 누릴 수 있는 특권이다.", "작은 일에 최선을 다하는 사람에게 큰일이 맡겨진다.", "당신이 믿는 대로 당신의 세상은 펼쳐진다.", "가난하게 태어난 것은 당신의 잘못이 아니지만, 가난하게 죽는 것은 당신의 책임이다.", "수입보다 지출이 적어야 하고, 지출보다 노력이 커야 한다.", "돈을 쫓지 말고 가치를 쫓아라. 돈은 가치를 따라온다.", "남들이 놀 때 공부하고, 남들이 잘 때 꿈꿔라.", "경제적 자유는 노동이 아닌 지혜와 인내에서 나온다.", "리스크를 감수하지 않는 것이 가장 큰 리스크다.", "부자의 마인드를 먼저 갖춰라. 부는 그 뒤에 따라온다.", "소비자가 되지 말고 생산자가 되어라.", "오늘의 땀방울이 내일의 통장 잔고를 결정한다.", "성공은 준비와 기회가 만났을 때 일어나는 불꽃놀이다.", "지금 흘린 침은 내일의 눈물이 되고, 지금 흘린 땀은 내일의 미소가 된다.", "공부할 때의 고통은 잠깐이지만, 배우지 못한 고통은 평생이다.", "졸지 마라. 네가 꿈꾸는 그 자리는 누군가 밤새워 지킨 자리다.", "책장을 넘기지 않으면 인생의 다음 페이지도 열리지 않는다.", "천재는 노력하는 자를 이길 수 없고, 노력하는 자는 즐기는 자를 이길 수 없다.", "암기한 지식은 잊힐 수 있지만, 공부하며 기른 인내심은 평생의 무기가 된다.", "펜은 칼보다 강하고, 꾸준함은 그 어떤 재능보다 강하다.", "오늘 푼 문제 하나가 합격과 불합격의 경계를 결정한다.", "머리가 나쁘다고 탓하기 전에, 엉덩이가 가벼운 것을 반성하라.", "고독을 즐겨라. 위대한 결과는 언제나 혼자만의 시간 속에서 잉태된다.", "동기부여가 시작하게 한다면, 습관은 당신을 계속 나아가게 한다.", "자신을 다스리지 못하는 자는 남의 노예가 될 수밖에 없다.", "오늘 할 일을 내일로 미루는 것은 미래의 나를 약탈하는 행위다.", "무계획은 실패를 계획하는 것과 같다.", "침대 위의 5분 달콤함이 하루의 5시간 후회를 만든다.", "스마트폰을 내려놓는 순간, 당신의 진짜 인생이 시작된다.", "사소한 정리가 머릿속의 질서를 만든다.", "감정은 일시적이지만, 루틴은 영원하다.", "의지력도 근육이다. 매일 써야 강해진다.", "규칙적인 생활은 자유로 가는 가장 빠른 길이다.", "나를 죽이지 못하는 고통은 나를 더 강하게 만든다.", "세상이 너를 믿지 않아도, 너만은 너를 믿어야 한다. 그것이 시작이다.", "근거 없는 자신감이 때로는 근거 있는 실력을 만든다.", "남들의 비웃음은 네가 올바른 길을 가고 있다는 증거다.", "네 인생의 주인공은 너다. 조연들의 참견에 흔들리지 마라.", "자존감은 남의 칭찬이 아니라 나의 성취에서 나온다.", "불안은 내 영혼이 성장하고 싶어 한다는 신호다.", "두려움을 느낀다면, 그것은 네가 도전하고 있다는 증거다.", "약점을 숨기지 마라. 그것을 보완하는 과정이 너의 강점이 된다.", "스스로를 귀하게 여겨라. 세상은 네가 정한 가격표대로 너를 대우한다.", "아침에 일어나는 순간의 승리가 하루의 승리를 결정한다.", "이불을 개는 작은 습관이 인생의 질서를 만든다.", "딱 5분만 더 하자. 그 5분이 임계점을 넘게 한다.", "오늘 할 수 있는 일을 내일로 미루는 것은 미래의 나에게 짐을 지우는 것이다.", "결과는 조급해하지 말고, 과정은 철저하게 통제하라.", "운동은 몸을 단련하는 것이 아니라 정신을 맑게 하는 것이다.", "식습관이 바뀌면 몸이 바뀌고, 몸이 바뀌면 생각이 바뀐다.", "메모하는 습관은 흐릿한 기억보다 선명한 미래를 만든다.", "산만함은 적이다. 한 번에 하나씩만 집중하라.", "끝맺음이 좋아야 진짜 성공이다. 마지막 1%까지 최선을 다하라.", "지금 놀면 평생 놀게 될지도 모른다.", "내일 하겠다는 말은 안 하겠다는 말과 같다.", "남들 잘 때 다 자고, 남들 놀 때 다 놀면서 성공을 바라는가?", "네가 오늘 죽어도 세상은 돌아가지만, 네 꿈은 거기서 끝난다.", "핑계 대지 마라. 그 핑계는 너를 안심시킬 뿐 현실을 바꾸지 못한다.", "머리가 나쁘면 몸이라도 움직여라. 둘 다 안 하면 답이 없다.", "고생은 사서도 한다는데, 너는 왜 있는 고생도 피하려 하는가?", "네가 가만히 있는 동안에도 경쟁자의 시계는 돌아간다.", "할 수 있을까라고 묻지 말고 어떻게 할까를 고민하라.", "오늘 하지 않은 공부는 내일 반드시 너의 발목을 잡는다.", "아마추어는 기분이 내킬 때 일하고, 프로는 계획대로 일한다.", "디테일의 차이가 명품을 만들고, 한 끝의 차이가 승패를 가른다.", "자신의 일에 미치지 않은 사람 중에 위대해진 사람은 없다.", "평판은 평생 쌓고 한순간에 무너진다. 매 순간 진심을 다하라.", "실력 없는 친절은 위선이고, 실력 있는 무뚝뚝함은 개성이다.", "질문을 멈추는 순간 성장은 멈춘다.", "최고의 복수는 압도적인 실력을 보여주는 것이다.", "결과가 과정을 정당화하지 않지만, 결과 없는 과정은 보상받기 힘들다.", "일관성은 천재성을 이긴다.", "너의 이름 석 자가 곧 브랜드가 되게 하라.", "실패는 다시 시작할 기회다.", "생각은 짧게, 행동은 길게.", "한계를 부수면 새로운 세상이 열린다.", "오늘이 네 인생의 가장 젊은 날이다.", "포기하는 순간 경기는 끝난다.", "끝날 때까지는 끝난 게 아니다.", "당신은 당신이 생각하는 것보다 강하다.", "고통은 성장의 세금이다.", "죽을 만큼 노력해 본 적 있는가?", "불가능, 그것은 나약한 자들의 변명이다.", "작은 성공의 경험이 큰 승리를 만든다.", "감사하는 마음은 모든 문을 여는 열쇠다.", "환경을 탓하기 전에 환경을 바꿀 용기를 가져라.", "기회는 준비된 자의 어깨 위에 내려앉는다.", "긍정적인 사람은 한계가 없고, 부정적인 사람은 할 게 없다.", "남을 이기려 하지 말고 어제의 나를 이겨라.", "비전 없는 열정은 브레이크 없는 자동차와 같다.", "가슴은 뜨겁게, 머리는 차갑게 유지하라.", "실패는 성공을 위한 리허설일 뿐이다.", "매일 아침 거울을 보며 웃어라. 운명이 바뀔 것이다.", "천재는 1%의 영감과 99%의 노력으로 이루어진다.", "방향이 잘못되면 속도는 의미가 없다.", "내일 지구가 멸망하더라도 나는 오늘 한 그루의 사과나무를 심겠다.", "세상을 바꾸고 싶다면 당신부터 변하라.", "최후의 승자는 가장 끝까지 버티는 사람이다.", "교육의 뿌리는 쓰지만, 그 열매는 달다.", "위대한 업적은 힘이 아니라 끈기에 의해 이루어진다.", "행동은 모든 성공의 기초가 된다.", "나는 천천히 걷는 사람이지만, 절대 뒤로 걷지는 않는다.", "가장 큰 영광은 한 번도 넘어지지 않는 것이 아니라, 넘어질 때마다 일어나는 데 있다.", "Dream big, work hard, stay humble.", "The best way to predict the future is to create it.", "Action is the foundational key to all success.", "Done is better than perfect.", "Don't stop when you're tired. Stop when you're done.", "No sweat, no sweet.", "Believe you can and you're halfway there.", "Pain is temporary. Quitting lasts forever.", "Your only limit is you.", "Small changes can make a big difference.", "네 성적은 네가 투자한 엉덩이 무게에 비례한다.", "지금 네가 보는 이 페이지가 시험에 나온다.", "합격 수기를 읽지 말고, 네가 합격 수기를 쓸 준비를 해라.", "이 정도면 되겠지라고 생각할 때 한 문제 더 풀어라.", "공부는 머리로 하는 게 아니라 엉덩이와 손끝으로 하는 것이다.", "컨디션 탓하지 마라. 시험장은 최고의 컨디션으로 가는 곳이 아니다.", "남들이 합격할 때 박수만 칠 것인가, 주인공이 될 것인가?", "책상 앞의 고독을 견디지 못하면, 사회의 냉혹함을 견뎌야 한다.", "오늘 네가 흘린 땀방울은 절대 너를 배신하지 않는다.", "합격은 운이 아니라, 실력이 운을 만났을 때 생기는 현상이다.", "걱정한다고 걱정이 없어지면 걱정이 없겠네. 걱정 대신 행동하라.", "남들이 뭐라고 하든 너의 길을 가라. 어차피 그들이 네 인생을 책임져주지 않는다.", "슬럼프가 왔다는 건 그만큼 열심히 달려왔다는 증거다.", "비교는 불행의 시작이다. 어제의 나보다 단 0.1%만 나아져라.", "할 수 있다고 생각하든 할 수 없다고 생각하든 당신이 생각하는 대로 될 것이다.", "마음이 흔들릴 때는 몸을 움직여라. 생각이 몸을 지배하기 전에 몸으로 생각을 다스려라.", "가장 어두운 시간은 해뜨기 직전이다. 지금이 가장 힘들다면 곧 해가 뜬다는 뜻이다.", "자신을 용서하라. 하지만 같은 실수를 반복하는 것은 용서하지 마라.", "모든 꽃은 피는 시기가 다르다. 당신의 계절은 아직 오지 않았을 뿐이다.", "나를 믿는 것, 그것이 모든 기적의 시작이다."
-    ];
+    const quotes = ["시작하는 비결은 바로 지금 움직이는 것이다.", "생각만 하는 자는 결코 목적지에 도달할 수 없다.", "완벽한 타이밍이란 존재하지 않는다. 지금이 바로 그 때다.", "망설임은 기회를 죽이는 가장 빠른 방법이다.", "일단 시작하라. 방법은 길 위에서 찾게 될 것이다.", "내일의 나에게 미안하지 않도록 오늘을 살아라.", "작은 한 걸음이 위대한 여정의 시작이다.", "준비가 덜 되었을 때 시작하는 것이 진짜 용기다.", "할 수 있다는 믿음보다 강력한 엔진은 없다.", "어제보다 나은 오늘을 만드는 것은 오직 행동뿐이다.", "비바람이 불지 않는 나무는 깊은 뿌리를 내릴 수 없다.", "포기하고 싶은 순간, 왜 시작했는지를 기억하라.", "천천히 가는 것을 두려워 말고, 멈춰 서는 것을 두려워하라.", "가장 늦었다고 생각할 때가 가장 빠른 때다.", "한 번의 실패는 성공으로 가는 길의 이정표일 뿐이다.", "성공은 99번의 거절 끝에 찾아오는 1번의 승낙이다.", "한 방울의 물이 바위를 뚫는 것은 힘이 아니라 반복이다.", "끝까지 버티는 자가 결국 웃게 된다.", "고통은 잠시지만, 영광은 영원하다.", "한계는 내가 설정한 마음의 벽일 뿐이다.", "오늘의 게으름은 내일의 빚이 된다.", "시간은 돈으로 살 수 없는 가장 공평한 자산이다.", "매일 1%씩만 성장해도 1년 뒤에는 37배 성장한다.", "운은 성실함이 기회를 만났을 때 생기는 불꽃이다.", "남들이 쉴 때 움직이는 자가 앞서나간다.", "사소한 습관이 모여 한 사람의 인생을 결정한다.", "자신을 이기는 자가 세상에서 가장 강한 자다.", "시간을 지배하는 자가 인생을 지배한다.", "성공한 사람의 화려함 뒤에는 수만 번의 반복이 있다.", "기적은 하늘에서 떨어지는 것이 아니라 스스로 만드는 것이다.", "꿈을 날짜와 함께 적으면 목표가 되고, 목표를 나누면 계획이 된다.", "별을 보며 걷는 사람은 진흙탕 길에서도 실망하지 않는다.", "너의 미래는 오늘 무엇을 하느냐에 달려 있다.", "세상이 안 된다고 말할 때, 스스로에게 왜 안 돼라고 물어라.", "가장 큰 위험은 아무런 도전도 하지 않는 것이다.", "꿈이 없는 인생은 항로 없는 배와 같다.", "당신은 당신이 생각하는 것보다 훨씬 더 위대하다.", "남의 시선에 갇혀 당신의 가능성을 죽이지 마라.", "상상이 현실이 되는 유일한 방법은 실행이다.", "가슴 뛰는 일을 찾아라. 그것이 당신의 연료가 될 것이다.", "지금 쉬면 편하겠지만, 나중에는 쉬고 싶어도 쉴 수 없게 된다.", "핑계는 자기 자신에게만 통하는 마약이다.", "남들이 당신을 과소평가하게 두지 마라. 실력으로 증명하라.", "나중이라는 단어는 실패자들의 가장 달콤한 무덤이다.", "재능이 없다고 탓하지 마라. 당신은 재능을 덮을 만큼 노력해 본 적이 있는가?", "오늘의 당신이 내일의 당신을 만든다. 지금의 모습에 만족하는가?", "변명 중에서도 가장 어리석은 변명은 시간이 없어서이다.", "노력하지 않으면서 얻기를 바라는 것은 도둑질과 다름없다.", "경쟁자는 지금도 페이지를 넘기고 있다.", "당신이 멈춘 그 자리가 누군가에게는 기회다.", "비가 온 뒤에 땅이 굳는다. 지금의 시련은 성장의 토양이다.", "무너져도 괜찮다. 다시 일어나는 법을 배우는 중일 뿐이다.", "성장은 계단식이다. 정체기는 다음 단계로 점프하기 위한 발판이다.", "당신이 느끼는 불안함은 당신이 잘하고 싶어 한다는 증거다.", "어둠 속에 있을 때야말로 당신의 빛이 가장 밝게 빛날 기회다.", "오늘의 실수는 내일의 노하우가 된다.", "남과 비교하지 말고, 어제의 자신과 비교하라.", "감정에 속지 마라. 기분은 변해도 할 일은 변하지 않는다.", "힘들다는 것은 지금 산을 오르고 있다는 뜻이다.", "휴식은 포기가 아니다. 더 멀리 가기 위한 전략적 후퇴다.", "태도가 곧 고도를 결정한다.", "운명은 결정된 것이 아니라, 당신의 선택으로 만들어가는 것이다.", "불평하는 데 쓰는 에너지를 해결하는 데 써라.", "성공의 반대는 실패가 아니라 하지 않는 것이다.", "세상이 너를 바꿀 수 없게 하라. 네가 세상을 바꿔라.", "긍정적인 생각은 부정적인 상황을 이기는 유일한 무기다.", "배움에는 끝이 없다. 겸손한 마음이 성장의 문을 연다.", "자신감은 준비된 자만이 누릴 수 있는 특권이다.", "작은 일에 최선을 다하는 사람에게 큰일이 맡겨진다.", "당신이 믿는 대로 당신의 세상은 펼쳐진다.", "가난하게 태어난 것은 당신의 잘못이 아니지만, 가난하게 죽는 것은 당신의 책임이다.", "수입보다 지출이 적어야 하고, 지출보다 노력이 커야 한다.", "돈을 쫓지 말고 가치를 쫓아라. 돈은 가치를 따라온다.", "남들이 놀 때 공부하고, 남들이 잘 때 꿈꿔라.", "경제적 자유는 노동이 아닌 지혜와 인내에서 나온다.", "리스크를 감수하지 않는 것이 가장 큰 리스크다.", "부자의 마인드를 먼저 갖춰라. 부는 그 뒤에 따라온다.", "소비자가 되지 말고 생산자가 되어라.", "오늘의 땀방울이 내일의 통장 잔고를 결정한다.", "성공은 준비와 기회가 만났을 때 일어나는 불꽃놀이다.", "지금 흘린 침은 내일의 눈물이 되고, 지금 흘린 땀은 내일의 미소가 된다.", "공부할 때의 고통은 잠깐이지만, 배우지 못한 고통은 평생이다.", "졸지 마라. 네가 꿈꾸는 그 자리는 누군가 밤새워 지킨 자리다.", "책장을 넘기지 않으면 인생의 다음 페이지도 열리지 않는다.", "천재는 노력하는 자를 이길 수 없고, 노력하는 자는 즐기는 자를 이길 수 없다.", "암기한 지식은 잊힐 수 있지만, 공부하며 기른 인내심은 평생의 무기가 된다.", "펜은 칼보다 강하고, 꾸준함은 그 어떤 재능보다 강하다.", "오늘 푼 문제 하나가 합격과 불합격의 경계를 결정한다.", "머리가 나쁘다고 탓하기 전에, 엉덩이가 가벼운 것을 반성하라.", "고독을 즐겨라. 위대한 결과는 언제나 혼자만의 시간 속에서 잉태된다.", "동기부여가 시작하게 한다면, 습관은 당신을 계속 나아가게 한다.", "자신을 다스리지 못하는 자는 남의 노예가 될 수밖에 없다.", "오늘 할 일을 내일로 미루는 것은 미래의 나를 약탈하는 행위다.", "무계획은 실패를 계획하는 것과 같다.", "침대 위의 5분 달콤함이 하루의 5시간 후회를 만든다.", "스마트폰을 내려놓는 순간, 당신의 진짜 인생이 시작된다.", "사소한 정리가 머릿속의 질서를 만든다.", "감정은 일시적이지만, 루틴은 영원하다.", "의지력도 근육이다. 매일 써야 강해진다.", "규칙적인 생활은 자유로 가는 가장 빠른 길이다.", "나를 죽이지 못하는 고통은 나를 더 강하게 만든다.", "세상이 너를 믿지 않아도, 너만은 너를 믿어야 한다. 그것이 시작이다.", "근거 없는 자신감이 때로는 근거 있는 실력을 만든다.", "남들의 비웃음은 네가 올바른 길을 가고 있다는 증거다.", "네 인생의 주인공은 너다. 조연들의 참견에 흔들리지 마라.", "자존감은 남의 칭찬이 아니라 나의 성취에서 나온다.", "불안은 내 영혼이 성장하고 싶어 한다는 신호다.", "두려움을 느낀다면, 그것은 네가 도전하고 있다는 증거다.", "약점을 숨기지 마라. 그것을 보완하는 과정이 너의 강점이 된다.", "스스로를 귀하게 여겨라. 세상은 네가 정한 가격표대로 너를 대우한다.", "아침에 일어나는 순간의 승리가 하루의 승리를 결정한다.", "이불을 개는 작은 습관이 인생의 질서를 만든다.", "딱 5분만 더 하자. 그 5분이 임계점을 넘게 한다.", "오늘 할 수 있는 일을 내일로 미루는 것은 미래의 나에게 짐을 지우는 것이다.", "결과는 조급해하지 말고, 과정은 철저하게 통제하라.", "운동은 몸을 단련하는 것이 아니라 정신을 맑게 하는 것이다.", "식습관이 바뀌면 몸이 바뀌고, 몸이 바뀌면 생각이 바뀐다.", "메모하는 습관은 흐릿한 기억보다 선명한 미래를 만든다.", "산만함은 적이다. 한 번에 하나씩만 집중하라.", "끝맺음이 좋아야 진짜 성공이다. 마지막 1%까지 최선을 다하라.", "지금 놀면 평생 놀게 될지도 모른다.", "내일 하겠다는 말은 안 하겠다는 말과 같다.", "남들 잘 때 다 자고, 남들 놀 때 다 놀면서 성공을 바라는가?", "네가 오늘 죽어도 세상은 돌아가지만, 네 꿈은 거기서 끝난다.", "핑계 대지 마라. 그 핑계는 너를 안심시킬 뿐 현실을 바꾸지 못한다.", "머리가 나쁘면 몸이라도 움직여라. 둘 다 안 하면 답이 없다.", "고생은 사서도 한다는데, 너는 왜 있는 고생도 피하려 하는가?", "네가 가만히 있는 동안에도 경쟁자의 시계는 돌아간다.", "할 수 있을까라고 묻지 말고 어떻게 할까를 고민하라.", "오늘 하지 않은 공부는 내일 반드시 너의 발목을 잡는다.", "아마추어는 기분이 내킬 때 일하고, 프로는 계획대로 일한다.", "디테일의 차이가 명품을 만들고, 한 끝의 차이가 승패를 가른다.", "자신의 일에 미치지 않은 사람 중에 위대해진 사람은 없다.", "평판은 평생 쌓고 한순간에 무너진다. 매 순간 진심을 다하라.", "실력 없는 친절은 위선이고, 실력 있는 무뚝뚝함은 개성이다.", "질문을 멈추는 순간 성장은 멈춘다.", "최고의 복수는 압도적인 실력을 보여주는 것이다.", "결과가 과정을 정당화하지 않지만, 결과 없는 과정은 보상받기 힘들다.", "일관성은 천재성을 이긴다.", "너의 이름 석 자가 곧 브랜드가 되게 하라.", "실패는 다시 시작할 기회다.", "생각은 짧게, 행동은 길게.", "한계를 부수면 새로운 세상이 열린다.", "오늘이 네 인생의 가장 젊은 날이다.", "포기하는 순간 경기는 끝난다.", "끝날 때까지는 끝난 게 아니다.", "당신은 당신이 생각하는 것보다 강하다.", "고통은 성장의 세금이다.", "죽을 만큼 노력해 본 적 있는가?", "불가능, 그것은 나약한 자들의 변명이다.", "작은 성공의 경험이 큰 승리를 만든다.", "감사하는 마음은 모든 문을 여는 열쇠다.", "환경을 탓하기 전에 환경을 바꿀 용기를 가져라.", "기회는 준비된 자의 어깨 위에 내려앉는다.", "긍정적인 사람은 한계가 없고, 부정적인 사람은 할 게 없다.", "남을 이기려 하지 말고 어제의 나를 이겨라.", "비전 없는 열정은 브레이크 없는 자동차와 같다.", "가슴은 뜨겁게, 머리는 차갑게 유지하라.", "실패는 성공을 위한 리허설일 뿐이다.", "매일 아침 거울을 보며 웃어라. 운명이 바뀔 것이다.", "천재는 1%의 영감과 99%의 노력으로 이루어진다.", "방향이 잘못되면 속도는 의미가 없다.", "내일 지구가 멸망하더라도 나는 오늘 한 그루의 사과나무를 심겠다.", "세상을 바꾸고 싶다면 당신부터 변하라.", "최후의 승자는 가장 끝까지 버티는 사람이다.", "교육의 뿌리는 쓰지만, 그 열매는 달다.", "위대한 업적은 힘이 아니라 끈기에 의해 이루어진다.", "행동은 모든 성공의 기초가 된다.", "나는 천천히 걷는 사람이지만, 절대 뒤로 걷지는 않는다.", "가장 큰 영광은 한 번도 넘어지지 않는 것이 아니라, 넘어질 때마다 일어나는 데 있다.", "Dream big, work hard, stay humble.", "The best way to predict the future is to create it.", "Action is the foundational key to all success.", "Done is better than perfect.", "Don't stop when you're tired. Stop when you're done.", "No sweat, no sweet.", "Believe you can and you're halfway there.", "Pain is temporary. Quitting lasts forever.", "Your only limit is you.", "Small changes can make a big difference.", "네 성적은 네가 투자한 엉덩이 무게에 비례한다.", "지금 네가 보는 이 페이지가 시험에 나온다.", "합격 수기를 읽지 말고, 네가 합격 수기를 쓸 준비를 해라.", "이 정도면 되겠지라고 생각할 때 한 문제 더 풀어라.", "공부는 머리로 하는 게 아니라 엉덩이와 손끝으로 하는 것이다.", "컨디션 탓하지 마라. 시험장은 최고의 컨디션으로 가는 곳이 아니다.", "남들이 합격할 때 박수만 칠 것인가, 주인공이 될 것인가?", "책상 앞의 고독을 견디지 못하면, 사회의 냉혹함을 견뎌야 한다.", "오늘 네가 흘린 땀방울은 절대 너를 배신하지 않는다.", "합격은 운이 아니라, 실력이 운을 만났을 때 생기는 현상이다.", "걱정한다고 걱정이 없어지면 걱정이 없겠네. 걱정 대신 행동하라.", "남들이 뭐라고 하든 너의 길을 가라. 어차피 그들이 네 인생을 책임져주지 않는다.", "슬럼프가 왔다는 건 그만큼 열심히 달려왔다는 증거다.", "비교는 불행의 시작이다. 어제의 나보다 단 0.1%만 나아져라.", "할 수 있다고 생각하든 할 수 없다고 생각하든 당신이 생각하는 대로 될 것이다.", "마음이 흔들릴 때는 몸을 움직여라. 생각이 몸을 지배하기 전에 몸으로 생각을 다스려라.", "가장 어두운 시간은 해뜨기 직전이다. 지금이 가장 힘들다면 곧 해가 뜬다는 뜻이다.", "자신을 용서하라. 하지만 같은 실수를 반복하는 것은 용서하지 마라.", "모든 꽃은 피는 시기가 다르다. 당신의 계절은 아직 오지 않았을 뿐이다.", "나를 믿는 것, 그것이 모든 기적의 시작이다."];
 
     function setStatus(msg, className) {
         const el = document.getElementById('syncStatus');
@@ -301,9 +275,7 @@
             if (className.includes('error') || msg.includes('오류') || msg.includes('실패')) {
                 el.innerText = "⚠️ 데이터 연결 오류 또는 저장 실패";
                 el.style.opacity = '1';
-            } else {
-                el.style.opacity = '0';
-            }
+            } else { el.style.opacity = '0'; }
         }
     }
 
@@ -317,38 +289,18 @@
     };
 
     window.addEventListener('keydown', (e) => {
+        // 🔥 탭 이동 단축키 🔥
+        if (e.altKey && e.key === '1') { e.preventDefault(); switchTab('monthly'); }
+        if (e.altKey && e.key === '2') { e.preventDefault(); switchTab('daily'); }
+        if (e.altKey && e.key === '3') { e.preventDefault(); switchTab('stats'); }
+
         if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addDailyRow(); }
         if (e.altKey && e.key.toLowerCase() === 'c') { e.preventDefault(); bulkCopyRows(); }
         if (e.altKey && e.key.toLowerCase() === 'd') { 
             e.preventDefault(); 
-            if(document.getElementById('tabDaily').classList.contains('active')){
-                bulkDeleteRows(); 
-            } else if (document.getElementById('tabMonthly').classList.contains('active')){
-                let gIndices = [], dIndices = [];
-                document.querySelectorAll('.goal-checkbox').forEach(cb => { if(cb.checked) gIndices.push(parseInt(cb.dataset.index)); });
-                document.querySelectorAll('.deadline-checkbox').forEach(cb => { if(cb.checked) dIndices.push(parseInt(cb.dataset.index)); });
-                
-                if(!gIndices.length && !dIndices.length) return showToast("선택된 항목이 없습니다.");
-                if(confirm(`선택한 목표 ${gIndices.length}개, 일정 ${dIndices.length}개를 삭제하시겠습니까?`)){
-                    gIndices.sort((a,b)=>b-a).forEach(idx => appData.allGoals.splice(idx,1));
-                    dIndices.sort((a,b)=>b-a).forEach(idx => appData.allDeadlines.splice(idx,1));
-                    window.renderMonthly(); saveToServer(); showToast("일괄 삭제 완료");
-                }
-            }
+            if(document.getElementById('tabDaily').classList.contains('active')) bulkDeleteRows(); 
         }
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') handleGridKey(e);
     });
-
-    function handleGridKey(e) {
-        const active = document.activeElement;
-        if (active.tagName === 'INPUT' && active.id.startsWith('input_')) {
-            const parts = active.id.split('_');
-            const key = parts[1], idx = parseInt(parts[2]);
-            const nextIdx = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
-            const nextEl = document.getElementById(`input_${key}_${nextIdx}`);
-            if (nextEl) { e.preventDefault(); nextEl.focus(); }
-        }
-    }
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -358,7 +310,6 @@
         } else {
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('appContainer').style.display = 'none';
-            if(unsubscribeSnapshot) unsubscribeSnapshot();
         }
     });
 
@@ -367,17 +318,14 @@
             if (docSnap.exists()) {
                 appData = { ...appData, ...docSnap.data() };
                 if(!window.isTyping) updateUI();
-                setStatus("✅ 동기화 완료", "sync-done");
-            } else {
-                setDoc(docRef, appData, { merge: true });
-            }
-        }, (error) => { setStatus("❌ 오류", "sync-error"); console.error(error); });
+            } else { setDoc(docRef, appData, { merge: true }); }
+        });
     }
 
     function saveToServer() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(async () => {
-            try { await setDoc(docRef, appData, { merge: true }); setStatus("✅ 저장됨", "sync-done"); } 
+            try { await setDoc(docRef, appData, { merge: true }); } 
             catch(e) { setStatus("❌ 실패", "sync-error"); }
         }, 1000); 
     }
@@ -385,11 +333,9 @@
     function getLocalYMD(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     
     function updateUI() { 
-        if(!document.getElementById('monthSelector').value) {
-            document.getElementById('monthSelector').value = getLocalYMD(new Date()).slice(0,7);
-        }
-        window.renderDaily(); 
-        window.renderMonthly(); 
+        if(!document.getElementById('monthSelector').value) document.getElementById('monthSelector').value = getLocalYMD(new Date()).slice(0,7);
+        // 🔥 새로고침 시 월별플래너가 나오도록 설정 🔥
+        window.switchTab('monthly'); 
         window.renderDdays(); 
         window.updateTemplateDropdown(); 
     }
@@ -416,16 +362,11 @@
         const cur = getCurrentDailyData(); const tbody = document.getElementById('plannerBody'); tbody.innerHTML = '';
         const selectedDate = document.getElementById('dailyDateSelector').value;
         document.getElementById('dailyDayOfWeek').innerText = `(${DAY_NAMES[new Date(selectedDate).getDay()]})`;
-        document.getElementById('selectAllCheckbox').checked = false;
-
         const dateNum = parseInt(selectedDate.replace(/-/g, ''));
-        if(!isNaN(dateNum)) {
-            document.getElementById('dailyAffirmation').innerHTML = `✨ <b>오늘의 한마디:</b> ${quotes[dateNum % quotes.length] || "오늘도 파이팅!"}`;
-        }
+        if(!isNaN(dateNum)) document.getElementById('dailyAffirmation').innerHTML = `✨ <b>오늘의 한마디:</b> ${quotes[dateNum % quotes.length]}`;
 
         cur.plan.forEach((row, i) => {
             const tr = document.createElement('tr'); tr.className = `draggable-row ${row.done?'completed-row':''}`;
-            // 🔥 드래그 이벤트 수정: 특정 영역(순서)만 드래그되도록 처리 🔥
             tr.ondragstart=(e)=>{draggedRowIndex=i; e.target.classList.add('dragging');};
             tr.ondragend=(e)=>{ e.target.classList.remove('dragging'); e.target.setAttribute('draggable', false); };
             tr.ondragover=(e)=>e.preventDefault();
@@ -439,7 +380,7 @@
                 <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentPlan_${i}" value="${row.contentPlan||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'contentPlan',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentPlan')" class="clear-btn" tabindex="-1">✕</button></div></td>
                 <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_timeActual_${i}" style="text-align:center; padding-right:20px;" value="${row.timeActual||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'timeActual',this.value)" onblur="handleTimeBlur(${i},'timeActual',this)"><button onclick="clearDailyContent(${i},'timeActual')" class="clear-btn" tabindex="-1">✕</button></div></td>
                 <td><div style="position:relative;display:flex;align-items:center;"><input type="text" id="input_contentActual_${i}" value="${row.contentActual||''}" onfocus="window.isTyping=true" oninput="updateDailyData(${i},'contentActual',this.value)" onblur="window.isTyping=false"><button onclick="clearDailyContent(${i},'contentActual')" class="clear-btn" tabindex="-1">✕</button></div></td>
-                <td><label><input type="checkbox" ${row.done?'checked':''} onchange="updateDailyCheck(${i},this.checked,this)"></label></td>
+                <td><input type="checkbox" ${row.done?'checked':''} onchange="updateDailyCheck(${i},this.checked,this)"></td>
             `;
             tbody.appendChild(tr);
         });
@@ -449,7 +390,7 @@
     window.bulkDeleteRows = () => {
         let indices = []; document.querySelectorAll('.bulk-move-checkbox').forEach(cb => { if(cb.checked) indices.push(parseInt(cb.dataset.index)); });
         if(!indices.length) return showToast("선택된 일정이 없습니다.");
-        if(confirm(`${indices.length}개를 삭제하시겠습니까?`)){ indices.sort((a,b)=>b-a).forEach(idx=>getCurrentDailyData().plan.splice(idx,1)); window.renderDaily(); saveToServer(); showToast("삭제 완료"); }
+        if(confirm(`${indices.length}개를 삭제하시겠습니까?`)){ indices.sort((a,b)=>b-a).forEach(idx=>getCurrentDailyData().plan.splice(idx,1)); window.renderDaily(); saveToServer(); }
     };
 
     window.bulkCopyRows = () => {
@@ -464,40 +405,32 @@
     };
 
     window.clearDailyContent = (index, key) => { getCurrentDailyData().plan[index][key] = ''; window.renderDaily(); saveToServer(); };
-    window.saveTemplate = () => { let p = getCurrentDailyData().plan; if(!p.length) return; let n = prompt("템플릿 이름"); if(n){ appData.templates[n] = p.map(r=>({timePlan:r.timePlan, studyType:r.studyType||'', contentPlan:r.contentPlan, timeActual:'', contentActual:'', done:false})); updateTemplateDropdown(); saveToServer(); showToast("저장됨"); } };
-    window.loadTemplate = () => { let v = document.getElementById('templateSelect').value; if(!v) return; getCurrentDailyData().plan.push(...JSON.parse(JSON.stringify(appData.templates[v]))); window.renderDaily(); saveToServer(); showToast("불러오기 완료"); };
-    
-    // 🔥 템플릿 삭제 기능 추가 🔥
+    window.saveTemplate = () => { let p = getCurrentDailyData().plan; if(!p.length) return; let n = prompt("템플릿 이름"); if(n){ appData.templates[n] = p.map(r=>({timePlan:r.timePlan, studyType:r.studyType||'', contentPlan:r.contentPlan, timeActual:'', contentActual:'', done:false})); updateTemplateDropdown(); saveToServer(); } };
+    window.loadTemplate = () => { let v = document.getElementById('templateSelect').value; if(!v) return; getCurrentDailyData().plan.push(...JSON.parse(JSON.stringify(appData.templates[v]))); window.renderDaily(); saveToServer(); };
     window.deleteTemplate = () => {
         let v = document.getElementById('templateSelect').value;
         if(!v) return showToast("삭제할 템플릿을 선택하세요.");
-        if(confirm(`'${v}' 템플릿을 삭제하시겠습니까?`)){
-            delete appData.templates[v];
-            updateTemplateDropdown();
-            saveToServer();
-            showToast("삭제되었습니다.");
-        }
+        if(confirm(`'${v}' 템플릿을 삭제하시겠습니까?`)){ delete appData.templates[v]; updateTemplateDropdown(); saveToServer(); }
     };
-
     window.updateTemplateDropdown = () => { let s = document.getElementById('templateSelect'); s.innerHTML = '<option value="">템플릿 선택...</option>'; for(let k in appData.templates) s.innerHTML += `<option value="${k}">${k}</option>`; };
     window.updateDailyProgressBar = () => { let p = getCurrentDailyData().plan, t=p.length, c=p.filter(r=>r.done).length, pct=t?Math.round(c/t*100):0; document.getElementById('progressBar').style.width=pct+'%'; document.getElementById('progressBar').innerText=pct+'%'; };
     window.updateDailyTotalTimeBadge = () => { let m=window.calcTotalMinutes(getCurrentDailyData().plan); document.getElementById('dailyTotalTime').innerText=`⏱️ 하루 공부시간: ${Math.floor(m/60)}시간 ${m%60}분`; };
-    window.updateDailyData = (i, k, v) => { getCurrentDailyData().plan[i][k] = v; if(k==='timeActual') updateDailyTotalTimeBadge(); saveToServer(); };
-    window.updateDailyCheck = (i, c, el) => { getCurrentDailyData().plan[i].done = c; el.closest('tr').classList.toggle('completed-row', c); updateDailyProgressBar(); saveToServer(); };
-    window.handleTimeBlur = (i, k, el) => { window.isTyping=false; let v=el.value, c=v.replace(/[^0-9]/g,''); if(c.length===8){ let f=`${c.slice(0,2)}:${c.slice(2,4)}~${c.slice(4,6)}:${c.slice(6,8)}`; getCurrentDailyData().plan[i][k]=f; el.value=f; } else { getCurrentDailyData().plan[i][k]=v; } updateDailyTotalTimeBadge(); saveToServer(); };
+    window.updateDailyData = (i, k, v) => { getCurrentDailyData().plan[i][k] = v; saveToServer(); };
+    window.updateDailyCheck = (i, c, el) => { getCurrentDailyData().plan[i].done = c; updateDailyProgressBar(); saveToServer(); };
+    window.handleTimeBlur = (i, k, el) => { window.isTyping=false; let v=el.value, c=v.replace(/[^0-9]/g,''); if(c.length===8){ let f=`${c.slice(0,2)}:${c.slice(2,4)}~${c.slice(4,6)}:${c.slice(6,8)}`; getCurrentDailyData().plan[i][k]=f; el.value=f; } saveToServer(); };
     window.addDailyRow = () => { getCurrentDailyData().plan.push({ timePlan:'', studyType:'', contentPlan:'', timeActual:'', contentActual:'', done:false }); window.renderDaily(); saveToServer(); };
-    window.updateDailyMemo = (v) => { getCurrentDailyData().memo = v; window.renderMonthly(); saveToServer(); };
+    window.updateDailyMemo = (v) => { getCurrentDailyData().memo = v; saveToServer(); };
 
     window.renderDdays = () => {
-        const container = document.getElementById('ddayContainer');
-        container.innerHTML = '';
-        if(!appData.dDays || appData.dDays.length === 0) return;
+        const container = document.getElementById('ddayContainer'); container.innerHTML = '';
+        if(!appData.dDays) return;
         appData.dDays.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(d => {
             const diff = Math.ceil((new Date(d.date).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000);
             const text = diff === 0 ? "D-Day" : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
             container.innerHTML += `<div class="dday-badge">${d.title} ${text}</div>`;
         });
     };
+
     window.openDdayModal = () => { document.getElementById('ddayModal').style.display='flex'; renderDdayListUI(); };
     window.closeDdayModal = () => { document.getElementById('ddayModal').style.display='none'; };
     window.renderDdayListUI = () => {
@@ -506,7 +439,7 @@
     };
     window.addDday = () => {
         const t = document.getElementById('newDdayTitle').value, d = document.getElementById('newDdayDate').value;
-        if(!t || !d) return alert("입력 오류"); appData.dDays.push({title:t, date:d}); renderDdayListUI(); window.renderDdays(); saveToServer();
+        if(!t || !d) return; appData.dDays.push({title:t, date:d}); renderDdayListUI(); window.renderDdays(); saveToServer();
     };
     window.deleteDday = (i) => { appData.dDays.splice(i,1); renderDdayListUI(); window.renderDdays(); saveToServer(); };
 
@@ -514,91 +447,26 @@
     window.goToThisMonth=()=>{document.getElementById('monthSelector').value=getLocalYMD(new Date()).slice(0,7); window.renderMonthly();};
     window.changeMonth=()=>window.renderMonthly();
     
-    window.toggleSelectAllMonthly = (type, checked) => {
-        const className = type === 'allGoals' ? '.goal-checkbox' : '.deadline-checkbox';
-        document.querySelectorAll(className).forEach(cb => cb.checked = checked);
-    };
-
-    window.bulkDeleteMonthly = (type) => {
-        const className = type === 'allGoals' ? '.goal-checkbox' : '.deadline-checkbox';
-        let indices = [];
-        document.querySelectorAll(className).forEach(cb => { if(cb.checked) indices.push(parseInt(cb.dataset.index)); });
-        if(!indices.length) return showToast("선택된 항목이 없습니다.");
-        if(confirm(`선택한 ${indices.length}개를 삭제하시겠습니까?`)){
-            indices.sort((a,b)=>b-a).forEach(idx => appData[type].splice(idx,1));
-            window.renderMonthly(); saveToServer(); showToast("삭제 완료");
-        }
-    };
-
-    window.startMonthlyDrag = (e, type, index) => {
-        e.stopPropagation();
-        e.dataTransfer.setData('text/plain', JSON.stringify({type, index}));
-    };
-    
-    window.dropMonthlyItem = (e, newDate) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.currentTarget.classList.remove('drag-over');
-        try {
-            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            if (data.type === 'allGoals') {
-                appData.allGoals[data.index].targetDate = newDate;
-            } else if (data.type === 'allDeadlines') {
-                appData.allDeadlines[data.index].date = newDate;
-            }
-            window.renderMonthly();
-            saveToServer();
-            showToast("일정이 이동되었습니다.");
-        } catch(err) { console.error("Drop Error:", err); }
-    };
-
-    window.dragOverHandler = (e) => {
-        e.preventDefault();
-        e.currentTarget.classList.add('drag-over');
-    };
-    
-    window.dragLeaveHandler = (e) => {
-        e.currentTarget.classList.remove('drag-over');
-    };
-
     window.renderMonthly=()=>{
         const m = document.getElementById('monthSelector').value, gv = appData.allGoals.filter(g=>!g.targetDate||g.targetDate.startsWith(m)), dv = appData.allDeadlines.filter(d=>!d.date||d.date.startsWith(m));
-        
-        const totalGoals = gv.length;
-        const completedGoals = gv.filter(g => g.done).length;
-        const goalPct = totalGoals ? Math.round((completedGoals / totalGoals) * 100) : 0;
+        const totalGoals = gv.length, completedGoals = gv.filter(g => g.done).length, goalPct = totalGoals ? Math.round((completedGoals / totalGoals) * 100) : 0;
         const pBar = document.getElementById('monthlyGoalProgress');
-        if (pBar) { pBar.style.width = goalPct + '%'; pBar.innerText = goalPct > 0 ? goalPct + '% 달성' : '0% 달성'; }
+        if (pBar) { pBar.style.width = goalPct + '%'; pBar.innerText = goalPct + '% 달성'; }
 
         const gc = document.getElementById('goalContainer'); gc.innerHTML = ''; 
         gv.forEach(g=>{ 
             const ri=appData.allGoals.indexOf(g); 
-            gc.innerHTML+=`
-            <div class="list-item">
-                <input type="checkbox" class="goal-checkbox" data-index="${ri}">
-                <input type="text" value="${g.targetDate}" placeholder="YYYY-MM-DD" maxlength="10" oninput="formatDateInput(this)" onblur="handleMDateBlur(${ri},'allGoals',this.value)" class="input-box" style="padding:4px; font-size:0.85em; width:90px; text-align:center;"> 
-                <input type="text" value="${g.text}" oninput="updateMText(${ri},'allGoals',this.value)" class="input-box" style="flex-grow:1;">
-                <label style="font-size:0.85em; font-weight:bold; color:#27ae60; display:flex; align-items:center; gap:3px; cursor:pointer; white-space:nowrap;">
-                    <input type="checkbox" ${g.done?'checked':''} onchange="updateMCheck(${ri},'allGoals',this.checked)"> 완료
-                </label>
-            </div>`;
+            gc.innerHTML+=`<div class="list-item"><input type="checkbox" class="goal-checkbox" data-index="${ri}"><input type="text" value="${g.targetDate}" class="input-box" style="width:90px; text-align:center;"><input type="text" value="${g.text}" oninput="updateMText(${ri},'allGoals',this.value)" class="input-box" style="flex-grow:1;"><label style="font-size:0.85em; font-weight:bold; color:#27ae60;"><input type="checkbox" ${g.done?'checked':''} onchange="updateMCheck(${ri},'allGoals',this.checked)"> 완료</label></div>`;
         });
         
         const dc = document.getElementById('deadlineContainer'); dc.innerHTML = ''; 
         dv.forEach(d=>{ 
             const ri=appData.allDeadlines.indexOf(d); 
-            dc.innerHTML+=`
-            <div class="list-item">
-                <input type="checkbox" class="deadline-checkbox" data-index="${ri}">
-                <input type="text" value="${d.date}" placeholder="YYYY-MM-DD" maxlength="10" oninput="formatDateInput(this)" onblur="handleMDateBlur(${ri},'allDeadlines',this.value)" class="input-box" style="padding:4px; font-size:0.85em; width:90px; text-align:center;"> 
-                <input type="text" value="${d.text}" oninput="updateMText(${ri},'allDeadlines',this.value)" class="input-box" style="flex-grow:1;">
-            </div>`;
+            dc.innerHTML+=`<div class="list-item"><input type="checkbox" class="deadline-checkbox" data-index="${ri}"><input type="text" value="${d.date}" class="input-box" style="width:90px; text-align:center;"><input type="text" value="${d.text}" oninput="updateMText(${ri},'allDeadlines',this.value)" class="input-box" style="flex-grow:1;"></div>`;
         });
-        
         renderCalendar();
     };
 
-    window.handleMDateBlur=(i,t,v)=>{let k=(t==='allGoals'?'targetDate':'date'); appData[t][i][k]=v; window.renderMonthly(); saveToServer();};
     window.updateMText=(i,t,v)=>{appData[t][i].text=v; saveToServer();};
     window.updateMCheck=(i,t,c)=>{appData[t][i].done=c; window.renderMonthly(); saveToServer();};
     window.addGoal=()=>{appData.allGoals.push({text:'',targetDate:document.getElementById('monthSelector').value+'-01',done:false}); window.renderMonthly(); saveToServer();};
@@ -617,76 +485,36 @@
             let b = '';
 
             if(appData.dailyStore[ds]){
-                if(appData.dailyStore[ds].plan && appData.dailyStore[ds].plan.length){
-                    let p = appData.dailyStore[ds].plan; 
-                    let dayMins = window.calcTotalMinutes(p); 
+                const dayPlan = appData.dailyStore[ds].plan;
+                if(dayPlan && dayPlan.length){
+                    let dayMins = window.calcTotalMinutes(dayPlan); 
                     totalMins += dayMins;
                     if(dayMins > 0) b += `<div class="cal-badge badge-time">⏱️ ${Math.floor(dayMins/60)}h ${dayMins%60}m</div>`;
                 }
+                // 🔥 캘린더 이미지(셀)에 오늘의 회고 내용 연동 🔥
                 if(appData.dailyStore[ds].memo && appData.dailyStore[ds].memo.trim() !== ""){
-                    b += `<div class="cal-badge badge-memo">📝 회고 완료</div>`;
+                    const memoPreview = appData.dailyStore[ds].memo.replace(/\n/g, ' ');
+                    b += `<div class="cal-badge badge-memo" title="${appData.dailyStore[ds].memo}">📝 ${memoPreview}</div>`;
                 }
             }
 
-            appData.allDeadlines.forEach((x, idx) => {
-                if(x.date === ds) {
-                    b += `<div class="cal-badge badge-deadline draggable" draggable="true" ondragstart="startMonthlyDrag(event, 'allDeadlines', ${idx})">🚨 ${x.text||'일정'}</div>`;
-                }
-            });
+            appData.allDeadlines.forEach((x, idx) => { if(x.date === ds) b += `<div class="cal-badge badge-deadline draggable" draggable="true" ondragstart="startMonthlyDrag(event, 'allDeadlines', ${idx})">🚨 ${x.text||'일정'}</div>`; });
+            appData.allGoals.forEach((x, idx) => { if(x.targetDate === ds) b += `<div class="cal-badge badge-goal draggable" draggable="true" ondragstart="startMonthlyDrag(event, 'allGoals', ${idx})" style="${x.done?'opacity:0.5;text-decoration:line-through':''}">🎯 ${x.text||'목표'}</div>`; });
             
-            appData.allGoals.forEach((x, idx) => {
-                if(x.targetDate === ds) {
-                    b += `<div class="cal-badge badge-goal draggable" draggable="true" ondragstart="startMonthlyDrag(event, 'allGoals', ${idx})" style="${x.done?'opacity:0.5;text-decoration:line-through':''}">🎯 ${x.text||'목표'}</div>`;
-                }
-            });
-            
-            grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${ds}')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)" ondrop="dropMonthlyItem(event, '${ds}')"><span class="cal-day-num">${d}</span>${b}</div>`;
+            grid.innerHTML += `<div class="calendar-cell" onclick="goToDate('${ds}')" ondragover="e=>e.preventDefault()" ondrop="dropMonthlyItem(event, '${ds}')"><span class="cal-day-num">${d}</span>${b}</div>`;
         }
         document.getElementById('monthlyTotalTime').innerText = `🗓️ 월 누적 시간: ${Math.floor(totalMins/60)}시간 ${totalMins%60}분`;
     }
-
-    window.exportDataToCSV = () => {
-        let start = document.getElementById('exportStartDate').value;
-        let end = document.getElementById('exportEndDate').value;
-        
-        let keys = Object.keys(appData.dailyStore).sort();
-        if (start) keys = keys.filter(k => k >= start);
-        if (end) keys = keys.filter(k => k <= end);
-
-        if(keys.length === 0) return showToast("해당 기간에 다운로드할 데이터가 없습니다.");
-
-        let csv = "\uFEFF날짜,순서,계획시간,분류,계획내용,실제시간,실제내용,완료여부\n";
-        keys.forEach(date => {
-            appData.dailyStore[date].plan.forEach((p, i) => {
-                csv += `${date},${i+1},${p.timePlan},${p.studyType},"${(p.contentPlan||'').replace(/"/g,'""')}",${p.timeActual},"${(p.contentActual||'').replace(/"/g,'""')}",${p.done?'완료':'미완료'}\n`;
-            });
-        });
-        
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Planner_Export.csv`; link.click();
-    };
-
-    window.renderStats = () => {
-        let mTotal = 0, last7 = [], today = new Date();
-        for(let i=6; i>=0; i--){
-            let d = new Date(today); d.setDate(d.getDate()-i);
-            let ds = getLocalYMD(d), m = appData.dailyStore[ds] ? window.calcTotalMinutes(appData.dailyStore[ds].plan) : 0;
-            last7.push({label:`${d.getMonth()+1}/${d.getDate()}`, m});
-        }
-        const cdiv = document.getElementById('statChart'); cdiv.innerHTML = ''; let max = Math.max(...last7.map(x=>x.m), 60);
-        last7.forEach(x=>{ cdiv.innerHTML += `<div class="bar-wrapper" style="width:10%;"><div class="bar" style="height:${(x.m/max)*100}%">${x.m?Math.floor(x.m/60)+'h':''}</div><div class="bar-label" style="font-size:0.8em;">${x.label}</div></div>`;});
-        document.getElementById('statMonthTotal').innerText = `월 누적 확인 가능`;
-    };
 
     window.switchTab = (t) => {
         document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active'));
         document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active');
         document.getElementById(t+'View').classList.add('active');
-        if(t==='daily') window.renderDaily(); else if(t==='monthly') {
-            if(!document.getElementById('monthSelector').value) document.getElementById('monthSelector').value = getLocalYMD(new Date()).slice(0,7);
-            window.renderMonthly(); 
-        } else window.renderStats();
+        if(t==='daily') window.renderDaily(); else if(t==='monthly') window.renderMonthly(); else window.renderStats();
     };
+
+    window.logout = () => signOut(auth).then(() => location.reload());
+    window.loginWithGoogle = () => signInWithPopup(auth, provider);
 </script>
 </body>
 </html>
